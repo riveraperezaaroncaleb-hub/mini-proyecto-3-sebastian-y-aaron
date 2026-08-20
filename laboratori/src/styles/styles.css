@@ -1,0 +1,352 @@
+/* --- ESTILOS GENERALES Y CONTENEDOR --- */
+body {
+  background-color: #050508;
+  color: #a0a5b5;
+  font-family: 'Consolas', 'Courier New', monospace;
+  margin: 0;
+  padding: 20px;
+}
+
+/* Transparencia para dejar ver el fondo animado del agujero negro */
+.main-container, .dashboard {
+  background: transparent;
+}
+
+/* --- TARJETAS / PANELES PRINCIPALES --- */
+.card, .panel, .dashboard-card, header, form, .table-container {
+  background: rgba(12, 13, 18, 0.85);
+  border: 1px solid rgba(255, 120, 0, 0.2);
+  border-radius: 6px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(255, 120, 0, 0.05);
+  backdrop-filter: blur(4px);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* --- TIPOGRAFÍA Y TEXTOS --- */
+h1, h2, h3, .title {
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+
+.highlight-orange, .divergence-num {
+  color: #ff7700;
+  text-shadow: 0 0 8px rgba(255, 119, 0, 0.6);
+}
+
+.highlight-green, .status-connected {
+  color: #00ff66;
+  text-shadow: 0 0 8px rgba(0, 255, 102, 0.6);
+}
+
+.text-muted, p, li {
+  color: #8c92a4;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+/* --- BOTÓN PRINCIPAL (ACTION BUTTON) --- */
+.btn-primary, .action-btn, button {
+  background: #ff7700;
+  color: #000000;
+  font-weight: bold;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(255, 119, 0, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover, .action-btn:hover, button:hover {
+  background: #ff9933;
+  box-shadow: 0 0 20px rgba(255, 119, 0, 0.8);
+  transform: translateY(-1px);
+}
+
+/* --- BLOQUES DE CÓDIGO Y TERMINAL --- */
+pre, code, .code-block {
+  background: rgba(5, 7, 10, 0.9);
+  border-left: 3px solid #00ff66;
+  color: #00ff66;
+  padding: 15px;
+  border-radius: 4px;
+  font-family: 'Consolas', monospace;
+  overflow-x: auto;
+}
+
+/* --- BORDES Y DETALLES DE ADVERTENCIA --- */
+.border-warning, .status-box {
+  border: 1px dashed #ff7700;
+}
+
+/* === Interfaz de laboratorio temporal === */
+:root {
+  --panel: rgba(7, 11, 16, 0.88);
+  --line: rgba(255, 146, 52, 0.38);
+  --orange: #ff8a24;
+  --orange-light: #ffb061;
+  --green: #20e58b;
+  --text: #d9dde0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Mantiene visible la animación del agujero negro detrás de la interfaz. */
+body {
+  min-height: 100vh;
+  padding: clamp(12px, 3vw, 34px);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+header,
+form,
+.table-container {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background:
+    linear-gradient(rgba(255, 138, 36, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 138, 36, 0.035) 1px, transparent 1px),
+    var(--panel);
+  background-size: 14px 14px, 14px 14px, auto;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.65), 0 16px 30px rgba(0, 0, 0, 0.48), inset 0 0 24px rgba(255, 138, 36, 0.035);
+  backdrop-filter: blur(7px);
+}
+
+header::before,
+form::before,
+.table-container::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 52px;
+  height: 2px;
+  background: var(--orange);
+  box-shadow: 0 0 10px rgba(255, 138, 36, 0.8);
+  content: "";
+}
+
+header {
+  max-width: 1120px;
+  margin: 0 auto 20px;
+  padding: 15px 18px 12px;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--text);
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.05;
+}
+
+h1 {
+  color: var(--orange-light);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: clamp(0.8rem, 1.6vw, 1.08rem);
+  font-weight: 800;
+  text-shadow: 0 0 12px rgba(255, 138, 36, 0.35);
+}
+
+h1::before {
+  margin-right: 9px;
+  color: var(--green);
+  content: "●";
+  font-size: 0.65em;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 13px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 146, 52, 0.14);
+}
+
+main {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.modulo-seccion {
+  margin-bottom: 20px;
+}
+
+.modulo-seccion > h2 {
+  display: inline-block;
+  margin: 0 0 8px 8px;
+  padding: 4px 9px;
+  border-left: 3px solid var(--orange);
+  background: rgba(3, 7, 10, 0.72);
+  color: var(--orange-light);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: clamp(0.7rem, 1.4vw, 0.86rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+}
+
+form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 24px 20px 20px;
+}
+
+.form-group {
+  display: grid;
+  gap: 7px;
+}
+
+label {
+  color: var(--orange-light);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 39px;
+  border: 1px solid rgba(187, 205, 207, 0.25);
+  border-radius: 2px;
+  outline: none;
+  background: rgba(2, 6, 9, 0.8);
+  color: var(--text);
+  padding: 8px 10px;
+  font: inherit;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 2px rgba(255, 138, 36, 0.16), 0 0 12px rgba(255, 138, 36, 0.15);
+}
+
+button {
+  min-height: 34px;
+  border: 1px solid var(--orange);
+  border-radius: 1px;
+  background: rgba(255, 138, 36, 0.1);
+  color: var(--orange-light);
+  padding: 8px 12px;
+  font: 700 0.68rem Consolas, "Courier New", monospace;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--orange);
+  box-shadow: 0 0 16px rgba(255, 138, 36, 0.45);
+  color: #140b04;
+  transform: translateY(-1px);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+form button[type="submit"] {
+  grid-column: 1 / -1;
+  justify-self: center;
+  min-width: min(100%, 270px);
+  background: var(--orange);
+  color: #140b04;
+}
+
+.table-container {
+  padding: 20px;
+}
+
+table {
+  width: 100%;
+  border: 1px solid rgba(255, 146, 52, 0.14);
+  border-collapse: collapse;
+  background: rgba(3, 7, 10, 0.7);
+  font-size: 0.76rem;
+}
+
+th,
+td {
+  border: 1px solid rgba(255, 146, 52, 0.16);
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  background: rgba(255, 138, 36, 0.11);
+  color: var(--orange-light);
+  font-size: 0.67rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+tbody tr:hover {
+  background: rgba(32, 229, 139, 0.06);
+}
+
+.badge-alerta,
+.badge-ok {
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  background: rgba(3, 7, 10, 0.72);
+  padding: 3px 7px;
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 12px;
+  }
+
+  form {
+    grid-template-columns: 1fr;
+    padding: 22px 14px 14px;
+  }
+
+  .table-container {
+    overflow-x: auto;
+    padding: 14px;
+  }
+
+  table {
+    min-width: 690px;
+  }
+}
+
+
+/* Asegura la transparencia del cuerpo para ver la imagen */
+html, body {
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ajuste de la imagen de fondo */
+#bg-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -10; /* La envía detrás de la interfaz */
+  pointer-events: none; /* Permite hacer clic en botones e inputs */
+  filter: brightness(0.7) contrast(1.1); /* Opcional: Oscurece un poco la imagen para no perder legibilidad */
+}

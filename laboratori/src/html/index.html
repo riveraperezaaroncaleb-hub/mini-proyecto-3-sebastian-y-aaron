@@ -29,13 +29,6 @@
 </head>
 <body>
 
-    <!-- RF-02: Indicator de Carga Asíncrono (Spinner) -->
-    <div id="loading-spinner" class="spinner-overlay hidden" aria-hidden="true">
-        <div class="spinner">
-            <p style="color: white; font-weight: bold;">Procesando petición asíncrona...</p>
-        </div>
-    </div>
-
     <!-- Toast de Notificación de Errores (Fallback UI) -->
     <div id="toast-error" class="toast-error hidden" role="alert">
         <span id="toast-message">Error de Conexión</span>
@@ -175,5 +168,10 @@
             document.getElementById(idSeccion).classList.remove('hidden');
         }
     </script>
+<!-- IMAGEN DE FONDO -->
+    <img src="https://i.pinimg.com/originals/3d/3e/ec/3d3eec82f8c67a96d82b8bd3bade837b.gif" id="bg-image" alt="Fondo de la página">
+
+    <!-- RF-02: Indicator de Carga Asíncrono (Spinner) -->
+    <div id="loading-spinner" class="spinner-overlay hidden" aria-hidden="true">
 </body>
 </html>

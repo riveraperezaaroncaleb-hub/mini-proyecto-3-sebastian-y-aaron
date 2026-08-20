@@ -1,0 +1,365 @@
+/* --- VARIABLES INSPIRADAS EN PROCOMER --- */
+:root {
+  --navy-primary: #002B49;
+  --navy-dark: #001A2D;
+  --teal-accent: #00A88F;
+  --teal-hover: #008672;
+  --bg-light: #F4F6F8;
+  --card-bg: #FFFFFF;
+  --text-dark: #2C3E50;
+  --text-muted: #6C7A89;
+  --border-color: #E2E8F0;
+  --red-alert: #D9534F;
+  --green-ok: #27AE60;
+  --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* --- ESTILOS GENERALES --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* --- ENCABEZADO INSTITUCIONAL --- */
+.navbar {
+  background-color: var(--navy-primary);
+  color: #FFFFFF;
+  padding: 1rem 5%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-badge {
+  background-color: var(--teal-accent);
+  color: #FFFFFF;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 1.2rem;
+}
+
+.navbar h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.tagline {
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: #B0C4DE;
+}
+
+/* NAVEGACIÓN */
+nav {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.nav-btn {
+  background: transparent;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+  background-color: var(--teal-accent);
+  border-color: var(--teal-accent);
+}
+
+/* --- CONTENEDOR PRINCIPAL --- */
+.main-container {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 0 20px;
+}
+
+.section-header {
+  margin-bottom: 1.5rem;
+  border-left: 4px solid var(--teal-accent);
+  padding-left: 12px;
+}
+
+.section-header h2 {
+  color: var(--navy-primary);
+  font-size: 1.4rem;
+}
+
+.section-header p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* --- TARJETAS Y FORMULARIOS --- */
+.card-form {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--navy-primary);
+}
+
+input, select {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+input:focus, select:focus {
+  border-color: var(--teal-accent);
+  box-shadow: 0 0 0 3px rgba(0, 168, 143, 0.15);
+}
+
+.btn-container {
+  margin-top: 1rem;
+}
+
+.btn-primary {
+  background-color: var(--teal-accent);
+  color: #FFFFFF;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--teal-hover);
+}
+
+/* --- TABLAS ESTILO INSTITUCIONAL --- */
+.table-container {
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+th {
+  background-color: var(--navy-primary);
+  color: #FFFFFF;
+  padding: 12px 16px;
+  font-weight: 600;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+tbody tr:hover {
+  background-color: #F8FAFC;
+}
+
+/* --- BADGES Y COMPONENTES UI --- */
+.badge-alerta {
+  background-color: var(--red-alert);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.badge-ok {
+  background-color: var(--green-ok);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.style-error {
+  color: var(--red-alert);
+  display: none;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.spinner-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 26, 45, 0.7);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 9999;
+}
+
+.toast-error {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  background-color: var(--red-alert);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 9999;
+}
+
+.toast-success {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  background-color: var(--green-ok);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 9999;
+}
+
+/* --- BADGES SECUNDARIOS Y ACCIONES --- */
+.badge-warning {
+  background-color: #E67E22;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.badge-neutral {
+  background-color: var(--text-muted);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.btn-mini {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: white;
+  margin: 2px;
+  transition: opacity 0.2s ease;
+}
+
+.btn-mini:hover {
+  opacity: 0.85;
+}
+
+.btn-aprobar { background-color: var(--green-ok); }
+.btn-rechazar { background-color: var(--red-alert); }
+.btn-reevaluar { background-color: var(--navy-primary); }
+
+.acciones-cell { white-space: nowrap; }
+
+.text-muted { color: var(--text-muted); font-size: 0.8rem; }
+
+.ia-fallback {
+  color: #E67E22;
+  font-weight: bold;
+  font-size: 0.75rem;
+}
+
+/* --- TARJETA DE RESULTADO PRE-SELECCIÓN IA (RF-04) --- */
+.ia-resultado {
+  background: var(--card-bg);
+  border: 1px solid var(--teal-accent);
+  border-left: 6px solid var(--teal-accent);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 4px 10px rgba(0, 168, 143, 0.12);
+}
+
+.ia-resultado h3 {
+  color: var(--navy-primary);
+  font-size: 1.05rem;
+  margin-bottom: 0.8rem;
+}
+
+.ia-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.ia-grid p, .ia-resultado > p {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .ia-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .card-form {
+    grid-template-columns: 1fr;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+}

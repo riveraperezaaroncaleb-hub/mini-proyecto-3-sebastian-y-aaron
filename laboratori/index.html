@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZoFranca CR - Plataforma de Gestión y Cumplimiento</title>
+    <link rel="stylesheet" href="/src/styles/styles.css">
+</head>
+<body>
+
+    <!-- RF-02: Indicador de Carga Asíncrono (Spinner) -->
+    <div id="loading-spinner" class="spinner-overlay hidden" aria-hidden="true">
+        <div class="spinner">
+            <p id="spinner-text" style="color: white; font-weight: bold;">Procesando petición asíncrona...</p>
+        </div>
+    </div>
+
+    <!-- Toast de Notificación (Fallback UI) -->
+    <div id="toast-error" class="toast-error hidden" role="alert">
+        <span id="toast-message">Error de Conexión</span>
+    </div>
+
+    <!-- ENCABEZADO INSTITUCIONAL -->
+    <header class="navbar">
+        <div class="brand-container">
+            <div class="logo-badge">ZF</div>
+            <h1>ZoFranca CR <span class="tagline">| Gestión de Zonas Francas</span></h1>
+        </div>
+        <nav>
+            <button class="nav-btn active" data-section="sec-solicitud">Enviar Solicitud (HU-01)</button>
+            <button class="nav-btn" data-section="sec-analista">Panel Analista (HU-02, 03)</button>
+            <button class="nav-btn" data-section="sec-reporte">Reporte Cumplimiento (HU-04)</button>
+            <button class="nav-btn" data-section="sec-auditoria">Panel Auditoría (HU-05)</button>
+        </nav>
+    </header>
+
+    <main class="main-container">
+
+        <!-- SECCIÓN 1: FORMULARIO DE SOLICITUD DE INSTALACIÓN (HU-01, RF-01) -->
+        <section id="sec-solicitud" class="modulo-seccion">
+            <div class="section-header">
+                <h2>HU-01: Registro y Envío de Solicitud de Instalación</h2>
+                <p>Complete el formulario para iniciar la evaluación institucional de su empresa.</p>
+            </div>
+
+            <form id="form-solicitud" class="card-form" novalidate>
+                <div class="form-group">
+                    <label for="empresaNombre">Nombre de la Empresa:</label>
+                    <input type="text" id="empresaNombre" name="empresaNombre" placeholder="Ej. TechCorp Costa Rica" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="sectorEmpresa">Sector Actividad:</label>
+                    <select id="sectorEmpresa" name="sectorEmpresa" required>
+                        <option value="">Seleccione un sector</option>
+                        <option value="Ciencias de la Vida">Ciencias de la Vida</option>
+                        <option value="Manufactura Avanzada">Manufactura Avanzada</option>
+                        <option value="Servicios">Servicios (BPO)</option>
+                        <option value="Logística">Logística</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="inversionProyectada">Inversión Proyectada ($ USD):</label>
+                    <input type="number" id="inversionProyectada" name="inversionProyectada" min="1" placeholder="ej. 150000" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="empleosProyectados">Empleos Proyectados:</label>
+                    <input type="number" id="empleosProyectados" name="empleosProyectados" min="1" placeholder="ej. 45" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="documentosAdjuntos">Documentación de Respaldo (.PDF estricto, máx 10MB):</label>
+                    <input type="file" id="documentosAdjuntos" name="documentosAdjuntos" accept=".pdf,application/pdf" required>
+                    <small id="error-file" class="style-error">
+                        El archivo excede 10MB o tiene un formato no válido.
+                    </small>
+                </div>
+
+                <div class="form-group full-width btn-container">
+                    <button type="submit" id="btn-submit-solicitud" class="btn-primary">Enviar Solicitud a Evaluación</button>
+                </div>
+            </form>
+
+            <!-- RF-04/RF-05: Resultado visible de la pre-clasificación IA -->
+            <div id="resultado-ia" class="ia-resultado hidden">
+                <h3>Resultado de la Pre-clasificación IA (RF-04)</h3>
+                <div class="ia-grid">
+                    <p><strong>Solicitud:</strong> <span id="ia-id">-</span></p>
+                    <p><strong>Puntaje de afinidad:</strong> <span id="ia-puntaje">-</span></p>
+                    <p><strong>Nivel de recomendación:</strong> <span id="ia-nivel">-</span></p>
+                    <p><strong>Motor utilizado:</strong> <span id="ia-motor">-</span></p>
+                </div>
+                <p><strong>Justificación:</strong> <span id="ia-justificacion">-</span></p>
+                <p class="text-muted"><strong>Fecha de evaluación:</strong> <span id="ia-fecha">-</span></p>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: PANEL DE ANALISTA (HU-02, HU-03) -->
+        <section id="sec-analista" class="modulo-seccion hidden">
+            <div class="section-header">
+                <h2>HU-02 / HU-03: Pre-clasificación IA y Dictamen Final</h2>
+                <p>Evaluación técnica Human-in-the-Loop de solicitudes recibidas.</p>
+            </div>
+            <div class="table-container">
+                <table id="tabla-solicitudes">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Empresa</th>
+                            <th>Inversión Proyectada</th>
+                            <th>Empleos Proyectados</th>
+                            <th>Sugerencia IA (RF-04/05)</th>
+                            <th>Estado Actual</th>
+                            <th>Acciones del Analista (RF-09)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-solicitudes-pendientes">
+                        <!-- Carga dinámica vía JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: REPORTES DE CUMPLIMIENTO (HU-04, RF-06) -->
+        <section id="sec-reporte" class="modulo-seccion hidden">
+            <div class="section-header">
+                <h2>HU-04: Registro Periódico de Cumplimiento Contractual</h2>
+                <p>Reporte de ejecución de metas de inversión y generación de empleo.</p>
+            </div>
+            <form id="form-cumplimiento" class="card-form">
+                <div class="form-group full-width">
+                    <label for="empresaIdCumplimiento">ID de Empresa Instalada:</label>
+                    <input type="text" id="empresaIdCumplimiento" name="empresaIdCumplimiento" placeholder="ej. EMP-001" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="inversionEjecutada">Inversión Ejecutada ($ USD):</label>
+                    <input type="number" id="inversionEjecutada" name="inversionEjecutada" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="empleosReales">Empleos Reales Generados:</label>
+                    <input type="number" id="empleosReales" name="empleosReales" min="0" required>
+                </div>
+
+                <div class="form-group full-width btn-container">
+                    <button type="submit" id="btn-submit-cumplimiento" class="btn-primary">Enviar Reporte de Cumplimiento</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- SECCIÓN 4: PANEL DE AUDITORÍA Y ALERTAS (HU-05) -->
+        <section id="sec-auditoria" class="modulo-seccion hidden">
+            <div class="section-header">
+                <h2>HU-05: Monitor de Alertas de Incumplimiento</h2>
+                <p>Auditoría en tiempo real sobre contratos activos de zona franca.</p>
+            </div>
+            <div class="table-container">
+                <table id="tabla-cumplimiento">
+                    <thead>
+                        <tr>
+                            <th>ID Reporte</th>
+                            <th>Empresa</th>
+                            <th>Compromiso vs Real</th>
+                            <th>% Cumplimiento Calculado</th>
+                            <th>Estado de Alerta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-alertas-cumplimiento">
+                        <!-- Carga dinámica vía JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section-header" style="margin-top: 2rem;">
+                <h2>Bitácora de Auditoría (RF-14)</h2>
+                <p>Trazabilidad de dictámenes y cambios de estado.</p>
+            </div>
+            <div class="table-container">
+                <table id="tabla-bitacora">
+                    <thead>
+                        <tr>
+                            <th>Fecha / Hora</th>
+                            <th>Usuario</th>
+                            <th>Solicitud</th>
+                            <th>Acción</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-bitacora">
+                        <!-- Carga dinámica vía JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Lógica del sistema (módulos ES) -->
+    <script type="module" src="/src/js/app.js"></script>
+</body>
+</html>

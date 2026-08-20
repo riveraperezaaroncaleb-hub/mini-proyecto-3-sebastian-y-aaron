@@ -1,0 +1,179 @@
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZoFranca CR - Plataforma de Gestión y Cumplimiento</title>
+    <!-- Estilos de interfaz base y notificaciones -->
+    <link rel="stylesheet" href="../styles/styles.css">
+    <style>
+        /* Estilos base para controles de UI requeridos */
+        .hidden { display: none !important; }
+        .spinner-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+        .toast-error {
+            position: fixed;
+            bottom: 20px; right: 20px;
+            background-color: #e53e3e; color: white;
+            padding: 12px 24px; border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 9999;
+        }
+        .badge-alerta { background-color: #e53e3e; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        .badge-ok { background-color: #38a169; color: white; padding: 4px 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- RF-02: Indicator de Carga Asíncrono (Spinner) -->
+    <div id="loading-spinner" class="spinner-overlay hidden" aria-hidden="true">
+        <div class="spinner">
+            <p style="color: white; font-weight: bold;">Procesando petición asíncrona...</p>
+        </div>
+    </div>
+
+    <!-- Toast de Notificación de Errores (Fallback UI) -->
+    <div id="toast-error" class="toast-error hidden" role="alert">
+        <span id="toast-message">Error de Conexión</span>
+    </div>
+
+    <header>
+        <h1>ZoFranca CR - Plataforma de Gestión de Zonas Francas</h1>
+        <nav>
+            <button onclick="mostrarSeccion('sec-solicitud')">Enviar Solicitud (HU-01)</button>
+            <button onclick="mostrarSeccion('sec-analista')">Panel Analista (HU-02, HU-03)</button>
+            <button onclick="mostrarSeccion('sec-reporte')">Reporte Cumplimiento (HU-04)</button>
+            <button onclick="mostrarSeccion('sec-auditoria')">Panel Auditoría (HU-05)</button>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- SECCIÓN 1: FORMULARIO DE SOLICITUD DE INSTALACIÓN (HU-01, RF-01) -->
+        <section id="sec-solicitud" class="modulo-seccion">
+            <h2>HU-01: Registro y Envió de Solicitud de Instalación</h2>
+            <form id="form-solicitud" novalidate>
+                <div class="form-group">
+                    <label for="empresaNombre">Nombre de la Empresa:</label>
+                    <input type="text" id="empresaNombre" name="empresaNombre" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="sectorEmpresa">Sector Actividad:</label>
+                    <select id="sectorEmpresa" name="sectorEmpresa" required>
+                        <option value="">Seleccione un sector</option>
+                        <option value="tecnologia">Tecnología</option>
+                        <option value="manufactura">Manufactura</option>
+                        <option value="bpo">Servicios (BPO)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="inversionProyectada">Inversión Proyectada ($ USD):</label>
+                    <input type="number" id="inversionProyectada" name="inversionProyectada" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="empleosProyectados">Empleos Proyectados:</label>
+                    <input type="number" id="empleosProyectados" name="empleosProyectados" min="1" required>
+                </div>
+
+                <!-- RF-01: Validar Adjuntos de Solicitud (PDF/ZIP <= 10MB) -->
+                <div class="form-group">
+                    <label for="documentosAdjuntos">Documentación de Respaldo (Solo .PDF o .ZIP, máx 10MB):</label>
+                    <input type="file" id="documentosAdjuntos" name="documentosAdjuntos" accept=".pdf,.zip" required>
+                    <small id="error-file" class="error-text" style="color:red; display:none;">
+                        El archivo excede 10MB o tiene un formato no válido.
+                    </small>
+                </div>
+
+                <button type="submit" id="btn-submit-solicitud">Enviar Solicitud a Evaluación</button>
+            </form>
+        </section>
+
+        <!-- SECCIÓN 2: PANEL DE ANALISTA (HU-02, HU-03, RF-04, RF-05, RF-09, RF-10) -->
+        <section id="sec-analista" class="modulo-seccion hidden">
+            <h2>HU-02 / HU-03: Pre-clasificación IA y Dictamen Final (Human-in-the-Loop)</h2>
+            <div class="table-container">
+                <table border="1" id="tabla-solicitudes">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Empresa</th>
+                            <th>Inversión Proyectada</th>
+                            <th>Empleos Proyectados</th>
+                            <th>Sugerencia IA (RF-04/05)</th>
+                            <th>Estado Actual</th>
+                            <th>Acciones del Analista (RF-09)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-solicitudes-pendientes">
+                        <!-- Carga dinámica vía JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: REPORTES DE CUMPLIMIENTO (HU-04, RF-06) -->
+        <section id="sec-reporte" class="modulo-seccion hidden">
+            <h2>HU-04: Registro Periódico de Cumplimiento Contractual</h2>
+            <form id="form-cumplimiento">
+                <div class="form-group">
+                    <label for="empresaIdCumplimiento">ID de Empresa Instalada:</label>
+                    <input type="text" id="empresaIdCumplimiento" name="empresaIdCumplimiento" placeholder="ej. EMP-001" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="inversionEjecutada">Inversión Ejecutada ($ USD):</label>
+                    <input type="number" id="inversionEjecutada" name="inversionEjecutada" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="empleosReales">Empleos Reales Generados:</label>
+                    <input type="number" id="empleosReales" name="empleosReales" required>
+                </div>
+
+                <button type="submit" id="btn-submit-cumplimiento">Enviar Reporte de Cumplimiento</button>
+            </form>
+        </section>
+
+        <!-- SECCIÓN 4: PANEL DE AUDITORÍA Y ALERTAS (HU-05, RF-07, RF-08) -->
+        <section id="sec-auditoria" class="modulo-seccion hidden">
+            <h2>HU-05: Monitor de Alertas de Incumplimiento (Auditoría)</h2>
+            <div class="table-container">
+                <table border="1" id="tabla-cumplimiento">
+                    <thead>
+                        <tr>
+                            <th>ID Reporte</th>
+                            <th>Empresa</th>
+                            <th>Compromiso vs Real</th>
+                            <th>% Cumplimiento Calculado (RF-07)</th>
+                            <th>Estado de Alerta (RF-08)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-alertas-cumplimiento">
+                        <!-- Carga dinámica vía JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Scripts de la lógica del sistema -->
+    <script type="module" src="js/apiService.js"></script>
+    <script type="module" src="js/iaService.js"></script>
+    <script type="module" src="js/app.js"></script>
+    <script>
+        // Función auxiliar para alternar vistas
+        function mostrarSeccion(idSeccion) {
+            document.querySelectorAll('.modulo-seccion').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById(idSeccion).classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

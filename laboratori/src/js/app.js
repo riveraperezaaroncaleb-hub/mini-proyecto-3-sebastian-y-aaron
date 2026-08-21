@@ -8,81 +8,96 @@ import {
 } from "./apiService.js";
 import { evaluarSolicitudConIA } from "./iaService.js";
 import { validarArchivoAdjunto, validarFormularioSolicitud } from "./validaciones.js";
+import {
+  escapeHtml,
+  formatearUSD,
+  badgeEstado,
+  mostrarToast,
+  mostrarSpinner,
+  ocultarSpinner,
+  abrirModal,
+  descargarCSV
+} from "./ui.js";
 
 const ANALISTA_ACTUAL = "analista@zofranca.cr";
-const SECTORES_ESTRATEGICOS = ["Ciencias de la Vida", "Manufactura Avanzada", "Servicios", "Logística"];
+const PAGE_SIZE = 5;
 
 let solicitudes = [];
 let reportes = [];
+let bitacora = [];
+let reportesCalculados = [];
+let paginaActual = 1;
+let filtroTexto = "";
+let filtroEstado = "TODOS";
+let filtroAlerta = "TODOS";
 
-// ---------- Utilidades UI (RF-02: Spinner / Fallback UI) ----------
-const spinner = document.getElementById("loading-spinner");
-const spinnerTexto = document.getElementById("spinner-text");
-const toast = document.getElementById("toast-error");
-const toastMensaje = document.getElementById("toast-message");
+const setTxt = (id, valor) => {
+  const el = document.getElementById(id);
+  if (el) el.textContent = valor;
+};
 
-function mostrarSpinner(mensaje = "Procesando petición asíncrona...") {
-  if (spinnerTexto) spinnerTexto.textContent = mensaje;
-  spinner.classList.remove("hidden");
-}
-
-function ocultarSpinner() {
-  spinner.classList.add("hidden");
-}
-
-function mostrarToast(mensaje, tipo = "error") {
-  toastMensaje.textContent = mensaje;
-  toast.classList.remove("toast-success", "toast-error");
-  toast.classList.add(tipo === "success" ? "toast-success" : "toast-error");
-  toast.classList.remove("hidden");
-  setTimeout(() => toast.classList.add("hidden"), 5000);
-}
-
-function formatearUSD(monto) {
-  return `$${Number(monto || 0).toLocaleString("en-US")} USD`;
-}
-
-function badgeEstado(estado) {
-  switch (estado) {
-    case "APROBADA":
-    case "RECOMENDADA":
-    case "CUMPLE":
-      return '<span class="badge-ok">' + estado + "</span>";
-    case "PENDIENTE_EVALUACION":
-    case "REVISAR":
-    case "ALERTA_AMARILLA":
-      return '<span class="badge-warning">' + estado + "</span>";
-    default:
-      return '<span class="badge-alerta">' + estado + "</span>";
-  }
-}
-
-// ---------- Navegación entre secciones ----------
-function mostrarSeccion(idSeccion) {
-  document.querySelectorAll(".modulo-seccion").forEach((sec) => sec.classList.add("hidden"));
-  document.getElementById(idSeccion).classList.remove("hidden");
-  document.querySelectorAll(".nav-btn").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.section === idSeccion);
-  });
-}
-
-// ---------- Carga de datos (RF-16: carga en paralelo) ----------
+// ---------- RF-16: carga en paralelo ----------
 async function refrescarDatos() {
-  mostrarSpinner("Cargando datos del servidor (RF-16)...");
+  mostrarSpinner("Cargando datos del servidor...");
   try {
-    const datos = await cargarDatosDashboard();
+    const [datos, bitacoraData] = await Promise.all([cargarDatosDashboard(), cargarBitacora()]);
     solicitudes = datos.solicitudes;
     reportes = datos.reportes;
+    bitacora = bitacoraData;
+    renderKPIs();
     renderPanelAnalista();
     renderPanelAuditoria();
   } catch (error) {
-    mostrarToast("No se pudo conectar con json-server. Verifique que esté corriendo en el puerto 3000.");
+    console.error(error);
+    mostrarToast("Sin conexión con el backend (puerto 3000). Ejecute: npm start");
   } finally {
     ocultarSpinner();
   }
 }
 
-// ---------- HU-01: Registro y envío de solicitud ----------
+// ---------- KPIs del dashboard ----------
+function renderKPIs() {
+  const pendientes = solicitudes.filter((s) => s.estado === "PENDIENTE_EVALUACION").length;
+  const aprobadas = solicitudes.filter((s) => s.estado === "APROBADA").length;
+  const conIA = solicitudes.filter((s) => s.evaluacionIA?.puntajeAfinidad != null);
+  const promedioIA = conIA.length
+    ? Math.round(conIA.reduce((acc, s) => acc + s.evaluacionIA.puntajeAfinidad, 0) / conIA.length)
+    : 0;
+  const alertasRojas = reportesCalculadosFrescos().filter(
+    (x) => x.calc.estadoAlerta === "ALERTA_ROJA"
+  ).length;
+
+  setTxt("kpi-total", solicitudes.length);
+  setTxt("kpi-pendientes", pendientes);
+  setTxt("kpi-aprobadas", aprobadas);
+  setTxt("kpi-ia-promedio", `${promedioIA}/100`);
+  setTxt("kpi-alertas", alertasRojas);
+}
+
+function calcularCumplimiento(reporte) {
+  const pctInversion = reporte.inversionComprometida
+    ? (reporte.inversionEjecutada / reporte.inversionComprometida) * 100
+    : null;
+  const pctEmpleos = reporte.empleosComprometidos
+    ? (reporte.empleosReales / reporte.empleosComprometidos) * 100
+    : null;
+  const valores = [pctInversion, pctEmpleos].filter((v) => v !== null);
+  const promedio = valores.length ? valores.reduce((a, b) => a + b, 0) / valores.length : null;
+
+  let estadoAlerta = "SIN_DATOS";
+  if (promedio !== null) {
+    if (promedio >= 90) estadoAlerta = "CUMPLE";
+    else if (promedio >= 70) estadoAlerta = "ALERTA_AMARILLA";
+    else estadoAlerta = "ALERTA_ROJA";
+  }
+  return { pctInversion, pctEmpleos, promedio, estadoAlerta };
+}
+
+function reportesCalculadosFrescos() {
+  return reportes.map((r) => ({ rep: r, calc: calcularCumplimiento(r) }));
+}
+
+// ---------- HU-01: envío de solicitud ----------
 async function manejarEnvioSolicitud(event) {
   event.preventDefault();
 
@@ -91,7 +106,7 @@ async function manejarEnvioSolicitud(event) {
   const archivo = archivoInput.files[0] || null;
 
   const campos = {
-    empresaNombre: document.getElementById("empresaNombre").value,
+    empresaNombre: document.getElementById("empresaNombre").value.trim(),
     sector: document.getElementById("sectorEmpresa").value,
     inversionProyectada: document.getElementById("inversionProyectada").value,
     empleosDirectosProyectados: document.getElementById("empleosProyectados").value
@@ -103,7 +118,7 @@ async function manejarEnvioSolicitud(event) {
     return;
   }
 
-  // RF-02: Validación estricta de archivo adjunto (PDF, máx 10MB)
+  // RF-02: validación estricta de archivo adjunto (PDF, máx 10MB)
   const validacionArchivo = validarArchivoAdjunto(archivo);
   if (!validacionArchivo.valido) {
     errorFile.textContent = validacionArchivo.mensaje;
@@ -115,7 +130,7 @@ async function manejarEnvioSolicitud(event) {
 
   const solicitudData = {
     id: generarIdEmpresa(),
-    empresaNombre: campos.empresaNombre.trim(),
+    empresaNombre: campos.empresaNombre,
     sector: campos.sector,
     inversionProyectada: Number(campos.inversionProyectada),
     empleosDirectosProyectados: Number(campos.empleosDirectosProyectados)
@@ -123,7 +138,7 @@ async function manejarEnvioSolicitud(event) {
 
   mostrarSpinner("Validando datos del formulario...");
   try {
-    // RF-04/RF-06: Pre-clasificación IA con timeout de 5s y fallback local
+    // RF-04/RF-06: pre-clasificación IA con timeout de 5s y fallback local
     mostrarSpinner(`Pre-clasificación IA en curso para ${solicitudData.empresaNombre} (máx 5s)...`);
     const evaluacionIA = await evaluarSolicitudConIA(solicitudData);
 
@@ -143,26 +158,8 @@ async function manejarEnvioSolicitud(event) {
   } catch (error) {
     console.error(error);
     ocultarSpinner();
-    mostrarToast(error.message || "Error al registrar la solicitud. Intente nuevamente.");
+    mostrarToast(error.message || "Error al registrar la solicitud.");
   }
-}
-
-// ---------- Visualización de la pre-selección IA (RF-04/RF-05) ----------
-function renderResultadoIA(solicitud, ia) {
-  const card = document.getElementById("resultado-ia");
-  if (!card) return;
-
-  document.getElementById("ia-id").textContent = `${solicitud.id} - ${solicitud.empresaNombre}`;
-  document.getElementById("ia-puntaje").textContent = `${ia.puntajeAfinidad} / 100 pts`;
-  document.getElementById("ia-nivel").innerHTML = badgeEstado(ia.nivelRecomendacion);
-  document.getElementById("ia-motor").innerHTML = ia.esFallback
-    ? '<span class="badge-warning">FALLBACK LOCAL</span> (la IA no respondió en 5s; algoritmo de contingencia)'
-    : '<span class="badge-ok">MOTOR IA</span> (respuesta oportuna)';
-  document.getElementById("ia-justificacion").textContent = ia.justificacion;
-  document.getElementById("ia-fecha").textContent = new Date(ia.fechaEvaluacion).toLocaleString();
-
-  card.classList.remove("hidden");
-  card.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function generarIdEmpresa() {
@@ -173,17 +170,51 @@ function generarIdEmpresa() {
   return id;
 }
 
-// ---------- HU-02 / HU-03: Panel del analista ----------
+// ---------- Visualización de la pre-selección IA (RF-04/RF-05) ----------
+function renderResultadoIA(solicitud, ia) {
+  const card = document.getElementById("resultado-ia");
+  if (!card) return;
+
+  setTxt("ia-id", `${solicitud.id} - ${solicitud.empresaNombre}`);
+  setTxt("ia-puntaje", `${ia.puntajeAfinidad} / 100 pts`);
+  document.getElementById("ia-nivel").innerHTML = badgeEstado(ia.nivelRecomendacion);
+  document.getElementById("ia-motor").innerHTML = ia.esFallback
+    ? '<span class="badge-warning">FALLBACK LOCAL</span> (la IA no respondió en 5s; algoritmo de contingencia)'
+    : '<span class="badge-ok">MOTOR IA</span> (respuesta oportuna)';
+  setTxt("ia-justificacion", ia.justificacion);
+  setTxt("ia-fecha", new Date(ia.fechaEvaluacion).toLocaleString());
+
+  card.classList.remove("hidden");
+  card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+// ---------- HU-02/HU-03: panel analista (filtros + paginación) ----------
+function solicitudesFiltradas() {
+  const q = filtroTexto.trim().toLowerCase();
+  return solicitudes.filter((s) => {
+    const coincideTexto =
+      !q ||
+      String(s.empresaNombre || "").toLowerCase().includes(q) ||
+      String(s.id || "").toLowerCase().includes(q);
+    const coincideEstado = filtroEstado === "TODOS" || s.estado === filtroEstado;
+    return coincideTexto && coincideEstado;
+  });
+}
+
 function renderPanelAnalista() {
+  const filtradas = solicitudesFiltradas();
+  const totalPaginas = Math.max(1, Math.ceil(filtradas.length / PAGE_SIZE));
+  if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+  const pagina = filtradas.slice((paginaActual - 1) * PAGE_SIZE, paginaActual * PAGE_SIZE);
+
   const tbody = document.getElementById("container-solicitudes-pendientes");
   tbody.innerHTML = "";
 
-  if (solicitudes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7">No hay solicitudes registradas.</td></tr>';
-    return;
+  if (pagina.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7">Sin resultados para los filtros aplicados.</td></tr>';
   }
 
-  solicitudes.forEach((sol) => {
+  pagina.forEach((sol) => {
     const ia = sol.evaluacionIA || {};
     const fila = document.createElement("tr");
 
@@ -191,44 +222,58 @@ function renderPanelAnalista() {
       sol.estado === "PENDIENTE_EVALUACION"
         ? `<button class="btn-mini btn-aprobar" data-id="${sol.id}" data-accion="APROBADA">Aprobar</button>
            <button class="btn-mini btn-rechazar" data-id="${sol.id}" data-accion="RECHAZADA">Rechazar</button>
-           <button class="btn-mini btn-reevaluar" data-id="${sol.id}">Re-evaluar IA</button>`
-        : '<span class="text-muted">Dictamen emitido</span>';
+           <button class="btn-mini btn-reevaluar" data-id="${sol.id}" title="Re-evaluar con IA">IA</button>
+           <button class="btn-mini btn-historial" data-id="${sol.id}" title="Ver historial">Historial</button>`
+        : `<button class="btn-mini btn-historial" data-id="${sol.id}" title="Ver historial">Historial</button>`;
 
     fila.innerHTML = `
-      <td>${sol.id}</td>
-      <td>${sol.empresaNombre}<br><small class="text-muted">${sol.sector || ""}</small></td>
+      <td>${escapeHtml(sol.id)}</td>
+      <td>${escapeHtml(sol.empresaNombre)}<br><small class="text-muted">${escapeHtml(sol.sector || "")}</small></td>
       <td>${formatearUSD(sol.inversionProyectada)}</td>
-      <td>${sol.empleosDirectosProyectados ?? "-"}</td>
+      <td>${escapeHtml(sol.empleosDirectosProyectados ?? "-")}</td>
       <td>
         ${badgeEstado(ia.nivelRecomendacion || "SIN_EVALUAR")}
-        <strong>${ia.puntajeAfinidad ?? "-"} pts</strong>
+        <strong>${escapeHtml(ia.puntajeAfinidad ?? "-")} pts</strong>
         ${ia.esFallback ? '<br><small class="ia-fallback">Fallback local</small>' : ""}
-        <br><small class="text-muted">${ia.justificacion || ""}</small>
+        <br><small class="text-muted">${escapeHtml(ia.justificacion || "")}</small>
       </td>
       <td>${badgeEstado(sol.estado)}</td>
       <td class="acciones-cell">${acciones}</td>
     `;
     tbody.appendChild(fila);
   });
+
+  setTxt(
+    "paginacion-info",
+    `Página ${paginaActual} de ${totalPaginas} · ${filtradas.length} registro(s)`
+  );
+  document.getElementById("btn-prev").disabled = paginaActual <= 1;
+  document.getElementById("btn-next").disabled = paginaActual >= totalPaginas;
 }
 
 async function manejarAccionesAnalista(event) {
+  const btnHistorial = event.target.closest(".btn-historial");
+  if (btnHistorial) return verHistorial(btnHistorial.dataset.id);
+
   const btnReevaluar = event.target.closest(".btn-reevaluar");
-  if (btnReevaluar) {
-    await reevaluarConIA(btnReevaluar.dataset.id);
-    return;
-  }
+  if (btnReevaluar) return reevaluarConIA(btnReevaluar.dataset.id);
 
   const btn = event.target.closest(".btn-mini[data-accion]");
   if (!btn) return;
 
   const { id, accion } = btn.dataset;
-  const observaciones = prompt(`Observaciones del dictamen (${accion}) para ${id}:`, "");
+  // Modal propio (reemplaza prompt nativo) con límite de caracteres
+  const observaciones = await abrirModal({
+    titulo: `Dictamen ${accion} — ${id}`,
+    mensaje: "Confirme el dictamen. Las observaciones quedan registradas en la bitácora (RF-14):",
+    entrada: true,
+    textoAceptar: `Confirmar ${accion}`
+  });
   if (observaciones === null) return;
 
   mostrarSpinner(`Aplicando dictamen ${accion} a ${id}...`);
   try {
-    // RF-09: Dictamen humano (Human-in-the-Loop) + RF-14: trazabilidad en bitácora
+    // RF-09: dictamen humano + RF-14: trazabilidad
     await aplicarDictamenHumano(id, accion, ANALISTA_ACTUAL, observaciones.trim());
     mostrarToast(`Dictamen ${accion} aplicado a ${id} y registrado en bitácora.`, "success");
     await refrescarDatos();
@@ -251,7 +296,6 @@ async function reevaluarConIA(id) {
     await actualizarEvaluacionIA(id, evaluacionIA);
     ocultarSpinner();
     renderResultadoIA(solicitud, evaluacionIA);
-    mostrarSeccion("sec-analista");
     mostrarToast(
       `${id}: IA sugiere ${evaluacionIA.nivelRecomendacion} (${evaluacionIA.puntajeAfinidad} pts)${evaluacionIA.esFallback ? " [Fallback local]" : ""}.`,
       "success"
@@ -265,7 +309,24 @@ async function reevaluarConIA(id) {
   }
 }
 
-// ---------- HU-04: Reporte periódico de cumplimiento ----------
+// Historial por solicitud (RF-14)
+function verHistorial(id) {
+  const movimientos = bitacora.filter((b) => b.solicitudId === id).slice().reverse();
+  const html = movimientos.length
+    ? `<ul class="timeline">${movimientos
+        .map(
+          (m) => `
+        <li><strong>${escapeHtml(m.accion)}</strong><br>
+        ${escapeHtml(m.usuario)} · ${new Date(m.timestamp).toLocaleString()}<br>
+        <span class="text-muted">${escapeHtml(m.observaciones || "Sin observaciones")}</span></li>`
+        )
+        .join("")}</ul>`
+    : '<p class="text-muted">Sin movimientos registrados para esta solicitud.</p>';
+
+  return abrirModal({ titulo: `Historial — ${id}`, contenidoHTML: html, modoInfo: true });
+}
+
+// ---------- HU-04: reporte de cumplimiento ----------
 async function manejarReporteCumplimiento(event) {
   event.preventDefault();
 
@@ -284,7 +345,7 @@ async function manejarReporteCumplimiento(event) {
     return;
   }
   if (empresa.estado !== "APROBADA") {
-    mostrarToast(`${empresaId} no está aprobada; solo empresas instaladas pueden reportar cumplimiento.`);
+    mostrarToast(`${empresaId} no está aprobada; solo empresas instaladas pueden reportar.`);
     return;
   }
 
@@ -304,88 +365,111 @@ async function manejarReporteCumplimiento(event) {
     await refrescarDatos();
   } catch (error) {
     console.error(error);
-    mostrarToast("Error al registrar el reporte de cumplimiento.");
+    mostrarToast(error.message || "Error al registrar el reporte.");
   } finally {
     ocultarSpinner();
   }
 }
 
-// ---------- HU-05: Monitor de alertas de incumplimiento ----------
-function calcularCumplimiento(reporte) {
-  const pctInversion = reporte.inversionComprometida
-    ? (reporte.inversionEjecutada / reporte.inversionComprometida) * 100
-    : null;
-  const pctEmpleos = reporte.empleosComprometidos
-    ? (reporte.empleosReales / reporte.empleosComprometidos) * 100
-    : null;
-
-  const valores = [pctInversion, pctEmpleos].filter((v) => v !== null);
-  const promedio = valores.length ? valores.reduce((a, b) => a + b, 0) / valores.length : null;
-
-  let estadoAlerta = "SIN_DATOS";
-  if (promedio !== null) {
-    if (promedio >= 90) estadoAlerta = "CUMPLE";
-    else if (promedio >= 70) estadoAlerta = "ALERTA_AMARILLA";
-    else estadoAlerta = "ALERTA_ROJA";
-  }
-
-  return { pctInversion, pctEmpleos, promedio, estadoAlerta };
-}
-
+// ---------- HU-05: monitor de alertas ----------
 function renderPanelAuditoria() {
+  reportesCalculados = reportesCalculadosFrescos();
+  const visibles = reportesCalculados.filter(
+    (x) => filtroAlerta === "TODOS" || x.calc.estadoAlerta === filtroAlerta
+  );
+
   const tbody = document.getElementById("container-alertas-cumplimiento");
   tbody.innerHTML = "";
 
-  if (reportes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5">No hay reportes de cumplimiento registrados.</td></tr>';
-  } else {
-    reportes.forEach((rep) => {
-      const calc = calcularCumplimiento(rep);
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td>${rep.id}</td>
-        <td>${rep.empresaNombre || rep.empresaId}</td>
-        <td>Inv: ${formatearUSD(rep.inversionComprometida)} → ${formatearUSD(rep.inversionEjecutada)}<br>
-            Emp: ${rep.empleosComprometidos ?? "-"} → ${rep.empleosReales ?? "-"}</td>
-        <td>${calc.promedio === null ? "-" : calc.promedio.toFixed(1) + "%"}</td>
-        <td>${badgeEstado(calc.estadoAlerta)}</td>
-      `;
-      tbody.appendChild(fila);
-    });
+  if (visibles.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5">No hay reportes que coincidan con el filtro.</td></tr>';
   }
+
+  visibles.forEach(({ rep, calc }) => {
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td>${escapeHtml(rep.id)}</td>
+      <td>${escapeHtml(rep.empresaNombre || rep.empresaId)}</td>
+      <td>Inv: ${formatearUSD(rep.inversionComprometida)} → ${formatearUSD(rep.inversionEjecutada)}<br>
+          Emp: ${escapeHtml(rep.empleosComprometidos ?? "-")} → ${escapeHtml(rep.empleosReales ?? "-")}</td>
+      <td>${calc.promedio === null ? "-" : calc.promedio.toFixed(1) + "%"}</td>
+      <td>${badgeEstado(calc.estadoAlerta)}</td>
+    `;
+    tbody.appendChild(fila);
+  });
 
   renderBitacora();
 }
 
-// ---------- RF-14: Bitácora de auditoría ----------
-async function renderBitacora() {
+function renderBitacora() {
   const tbody = document.getElementById("container-bitacora");
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  try {
-    const bitacora = await cargarBitacora();
-    if (bitacora.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5">Sin movimientos de auditoría registrados.</td></tr>';
-      return;
-    }
-    bitacora
-      .slice()
-      .reverse()
-      .forEach((entry) => {
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-          <td>${new Date(entry.timestamp).toLocaleString()}</td>
-          <td>${entry.usuario}</td>
-          <td>${entry.solicitudId}</td>
-          <td>${entry.accion}</td>
-          <td>${entry.observaciones || "-"}</td>
-        `;
-        tbody.appendChild(fila);
-      });
-  } catch (error) {
-    tbody.innerHTML = '<tr><td colspan="5">No se pudo cargar la bitácora.</td></tr>';
+  if (bitacora.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5">Sin movimientos de auditoría.</td></tr>';
+    return;
   }
+
+  bitacora
+    .slice()
+    .reverse()
+    .forEach((entry) => {
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${new Date(entry.timestamp).toLocaleString()}</td>
+        <td>${escapeHtml(entry.usuario)}</td>
+        <td>${escapeHtml(entry.solicitudId)}</td>
+        <td>${escapeHtml(entry.accion)}</td>
+        <td>${escapeHtml(entry.observaciones || "-")}</td>
+      `;
+      tbody.appendChild(fila);
+    });
+}
+
+// ---------- Exportación CSV ----------
+function exportarSolicitudesCSV() {
+  descargarCSV(
+    "solicitudes_zofranca.csv",
+    solicitudesFiltradas().map((s) => ({
+      ID: s.id,
+      Empresa: s.empresaNombre,
+      Sector: s.sector,
+      InversionUSD: s.inversionProyectada,
+      Empleos: s.empleosDirectosProyectados,
+      IA_Nivel: s.evaluacionIA?.nivelRecomendacion ?? "",
+      IA_Puntaje: s.evaluacionIA?.puntajeAfinidad ?? "",
+      Fallback: s.evaluacionIA?.esFallback ? "SI" : "NO",
+      Estado: s.estado,
+      Fecha: s.fechaCreacion ? new Date(s.fechaCreacion).toLocaleString() : ""
+    }))
+  );
+}
+
+function exportarReportesCSV() {
+  descargarCSV(
+    "cumplimiento_zofranca.csv",
+    reportesCalculados.map(({ rep, calc }) => ({
+      ID: rep.id,
+      Empresa: rep.empresaNombre || rep.empresaId,
+      Inversion_Comprometida: rep.inversionComprometida,
+      Inversion_Ejecutada: rep.inversionEjecutada,
+      Empleos_Comprometidos: rep.empleosComprometidos,
+      Empleos_Reales: rep.empleosReales,
+      Porcentaje: calc.promedio === null ? "" : calc.promedio.toFixed(1),
+      Alerta: calc.estadoAlerta,
+      Fecha: rep.fechaReporte ? new Date(rep.fechaReporte).toLocaleString() : ""
+    }))
+  );
+}
+
+// ---------- Navegación ----------
+function mostrarSeccion(idSeccion) {
+  document.querySelectorAll(".modulo-seccion").forEach((sec) => sec.classList.add("hidden"));
+  document.getElementById(idSeccion).classList.remove("hidden");
+  document.querySelectorAll(".nav-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.section === idSeccion);
+  });
 }
 
 // ---------- Inicialización ----------
@@ -399,6 +483,31 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("container-solicitudes-pendientes")
     .addEventListener("click", manejarAccionesAnalista);
+
+  document.getElementById("filtro-busqueda").addEventListener("input", (e) => {
+    filtroTexto = e.target.value;
+    paginaActual = 1;
+    renderPanelAnalista();
+  });
+  document.getElementById("filtro-estado").addEventListener("change", (e) => {
+    filtroEstado = e.target.value;
+    paginaActual = 1;
+    renderPanelAnalista();
+  });
+  document.getElementById("filtro-alerta").addEventListener("change", (e) => {
+    filtroAlerta = e.target.value;
+    renderPanelAuditoria();
+  });
+
+  document.getElementById("btn-prev").addEventListener("click", () => {
+    if (paginaActual > 1) { paginaActual--; renderPanelAnalista(); }
+  });
+  document.getElementById("btn-next").addEventListener("click", () => {
+    paginaActual++; renderPanelAnalista();
+  });
+
+  document.getElementById("btn-exportar-solicitudes").addEventListener("click", exportarSolicitudesCSV);
+  document.getElementById("btn-exportar-reportes").addEventListener("click", exportarReportesCSV);
 
   refrescarDatos();
 });

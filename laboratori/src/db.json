@@ -26,7 +26,7 @@
       "empleosDirectosProyectados": 12,
       "archivoAdjunto": "propuesta-biolife.pdf",
       "tamanoArchivoMB": 5.1,
-      "estado": "PENDIENTE_EVALUACION",
+      "estado": "RECHAZADA",
       "fechaCreacion": "2026-08-15T09:00:00.000Z",
       "evaluacionIA": {
         "puntajeAfinidad": 100,
@@ -124,6 +124,42 @@
         "justificacion": "Inversión insuficiente para el régimen ($150,000 USD mín). Cumple con la cuota mínima de 10 empleos directos. Sector estratégico autorizable (Ciencias de la Vida).",
         "esFallback": false,
         "fechaEvaluacion": "2026-08-20T21:57:51.119Z"
+      }
+    },
+    {
+      "id": "EMP-960280",
+      "empresaNombre": "srrgrtthh",
+      "sector": "Manufactura Avanzada",
+      "inversionProyectada": 1,
+      "empleosDirectosProyectados": 12,
+      "archivoAdjunto": "ToDo_List_y_Guia_DOM.pdf",
+      "tamanoArchivoMB": 0.04,
+      "estado": "PENDIENTE_EVALUACION",
+      "fechaCreacion": "2026-08-20T22:12:43.896Z",
+      "evaluacionIA": {
+        "puntajeAfinidad": 50,
+        "nivelRecomendacion": "REVISAR",
+        "justificacion": "Inversión insuficiente para el régimen ($150,000 USD mín). Cumple con la cuota mínima de 10 empleos directos. Sector estratégico autorizable (Manufactura Avanzada).",
+        "esFallback": false,
+        "fechaEvaluacion": "2026-08-20T22:12:43.878Z"
+      }
+    },
+    {
+      "id": "EMP-004792",
+      "empresaNombre": "nsjnuiwefun",
+      "sector": "Manufactura Avanzada",
+      "inversionProyectada": 10000000,
+      "empleosDirectosProyectados": 123,
+      "archivoAdjunto": "levantamiento_requerimientos_v2.pdf",
+      "tamanoArchivoMB": 0.03,
+      "estado": "PENDIENTE_EVALUACION",
+      "fechaCreacion": "2026-08-20T22:13:27.792Z",
+      "evaluacionIA": {
+        "puntajeAfinidad": 100,
+        "nivelRecomendacion": "RECOMENDADA",
+        "justificacion": "Satisface la inversión mínima requerida ($150,000 USD). Cumple con la cuota mínima de 10 empleos directos. Sector estratégico autorizable (Manufactura Avanzada).",
+        "esFallback": false,
+        "fechaEvaluacion": "2026-08-20T22:13:27.792Z"
       }
     }
   ],

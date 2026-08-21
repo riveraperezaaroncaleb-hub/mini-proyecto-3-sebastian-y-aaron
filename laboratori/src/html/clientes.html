@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZoFranca CR - Plataforma de Gestión y Cumplimiento</title>
+       <link rel="stylesheet" href="../styles/styles.css">
+</head>
+<body>
+
+    <!-- Spinner de carga asíncrona (RF-02) -->
+    <div id="loading-spinner" class="spinner-overlay hidden" aria-hidden="true">
+        <div class="spinner">
+            <p id="spinner-text">Procesando petición asíncrona...</p>
+        </div>
+    </div>
+
+    <!-- Toast de notificaciones -->
+    <div id="toast-error" class="toast-error hidden" role="alert" aria-live="polite">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Modal accesible (reemplaza prompt/confirm nativos) -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+            <h3 id="modal-titulo"></h3>
+            <p id="modal-mensaje" class="hidden"></p>
+            <div id="modal-contenido" class="hidden"></div>
+            <textarea id="modal-input" class="hidden" maxlength="250"
+                placeholder="Escriba sus observaciones..."></textarea>
+            <div id="modal-contador" class="char-counter hidden">0/250</div>
+            <div class="modal-acciones">
+                <button id="modal-btn-cancelar" class="btn-secondary" type="button">Cancelar</button>
+                <button id="modal-btn-aceptar" class="btn-primary" type="button">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ENCABEZADO -->
+    <header class="navbar">
+        <div class="brand-container">
+            <div class="logo-badge">ZF</div>
+            <h1>ZoFranca CR</h1>
+        </div>
+        <nav aria-label="Navegación principal">
+            <button class="nav-btn active" data-section="sec-solicitud">Solicitud</button>
+            <button class="nav-btn" data-section="sec-analista">Analista</button>
+            <button class="nav-btn" data-section="sec-reporte">Cumplimiento</button>
+            <button class="nav-btn" data-section="sec-auditoria">Auditoría</button>
+        </nav>
+    </header>
+
+    <main class="main-container">
+
+        <!-- KPIs GENERALES -->
+        <section class="kpi-strip" aria-label="Indicadores generales">
+            <div class="kpi-card"><span class="kpi-valor" id="kpi-total">-</span><span class="kpi-etiqueta">Solicitudes</span></div>
+            <div class="kpi-card"><span class="kpi-valor" id="kpi-pendientes">-</span><span class="kpi-etiqueta">Pendientes</span></div>
+            <div class="kpi-card"><span class="kpi-valor" id="kpi-aprobadas">-</span><span class="kpi-etiqueta">Aprobadas</span></div>
+            <div class="kpi-card"><span class="kpi-valor" id="kpi-ia-promedio">-</span><span class="kpi-etiqueta">Puntaje IA prom.</span></div>
+            <div class="kpi-card kpi-alerta"><span class="kpi-valor" id="kpi-alertas">-</span><span class="kpi-etiqueta">Alertas rojas</span></div>
+        </section>
+
+        <!-- HU-01: SOLICITUD DE INSTALACIÓN (RF-01) -->
+        <section id="sec-solicitud" class="modulo-seccion">
+            <div class="section-header">
+                <h2>HU-01 · Registro y Envío de Solicitud</h2>
+                <p>La IA pre-clasificará su solicitud automáticamente (máx. 5 segundos).</p>
+            </div>
+
+            <form id="form-solicitud" class="card-form" novalidate autocomplete="off">
+                <div class="form-group">
+                    <label for="empresaNombre">Nombre de la Empresa</label>
+                    <input type="text" id="empresaNombre" maxlength="80" required
+                        placeholder="Ej. TechCorp Costa Rica (máx. 80 caracteres)">
+                </div>
+
+                <div class="form-group">
+                    <label for="sectorEmpresa">Sector de Actividad</label>
+                    <select id="sectorEmpresa" required>
+                        <option value="">Seleccione un sector</option>
+                        <option value="Ciencias de la Vida">Ciencias de la Vida</option>
+                        <option value="Manufactura Avanzada">Manufactura Avanzada</option>
+                        <option value="Servicios">Servicios (BPO)</option>
+                        <option value="Logística">Logística</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="inversionProyectada">Inversión Proyectada ($ USD)</label>
+                    <input type="number" id="inversionProyectada" min="1" max="1000000000" required placeholder="ej. 150000">
+                </div>
+
+                <div class="form-group">
+                    <label for="empleosProyectados">Empleos Proyectados</label>
+                    <input type="number" id="empleosProyectados" min="1" max="99999" required placeholder="ej. 45">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="documentosAdjuntos">Documentación de Respaldo (.PDF estricto, máx 10MB)</label>
+                    <input type="file" id="documentosAdjuntos" accept=".pdf,application/pdf" required>
+                    <small id="error-file" class="style-error">
+                        El archivo excede 10MB o tiene un formato no válido.
+                    </small>
+                </div>
+
+                <div class="form-group full-width btn-container">
+                    <button type="submit" class="btn-primary">Enviar a Evaluación</button>
+                </div>
+            </form>
+
+            <!-- RF-04/05: resultado visible de la pre-clasificación IA -->
+            <div id="resultado-ia" class="ia-resultado hidden">
+                <h3>Resultado de la Pre-clasificación IA</h3>
+                <div class="ia-grid">
+                    <p><strong>Solicitud:</strong> <span id="ia-id">-</span></p>
+                    <p><strong>Puntaje:</strong> <span id="ia-puntaje">-</span></p>
+                    <p><strong>Nivel:</strong> <span id="ia-nivel">-</span></p>
+                    <p><strong>Motor:</strong> <span id="ia-motor">-</span></p>
+                </div>
+                <p><strong>Justificación:</strong> <span id="ia-justificacion">-</span></p>
+                <p class="text-muted"><strong>Fecha:</strong> <span id="ia-fecha">-</span></p>
+            </div>
+        </section>
+
+        <!-- HU-02/HU-03: PANEL ANALISTA (RF-04/05/09) -->
+        <section id="sec-analista" class="modulo-seccion hidden">
+            <div class="section-header">
+                <h2>HU-02 / HU-03 · Pre-clasificación IA y Dictamen Final</h2>
+                <p>Evaluación Human-in-the-Loop de solicitudes recibidas.</p>
+            </div>
+
+            <div class="filtros-barra">
+                <input type="text" id="filtro-busqueda" maxlength="60" placeholder="Buscar por empresa o ID...">
+                <select id="filtro-estado">
+                    <option value="TODOS">Todos los estados</option>
+                    <option value="PENDIENTE_EVALUACION">Pendientes</option>
+                    <option value="APROBADA">Aprobadas</option>
+                    <option value="RECHAZADA">Rechazadas</option>
+                </select>
+                <button id="btn-exportar-solicitudes" class="btn-fantasma" type="button">Exportar CSV</button>
+            </div>
+
+            <div class="table-container">
+                <table id="tabla-solicitudes">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Empresa</th>
+                            <th>Inversión</th>
+                            <th>Empleos</th>
+                            <th>Sugerencia IA</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-solicitudes-pendientes"></tbody>
+                </table>
+                <div class="paginacion">
+                    <span id="paginacion-info">-</span>
+                    <button id="btn-prev" class="btn-fantasma" type="button">&larr; Anterior</button>
+                    <button id="btn-next" class="btn-fantasma" type="button">Siguiente &rarr;</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- HU-04: CUMPLIMIENTO CONTRACTUAL -->
+        <section id="sec-reporte" class="modulo-seccion hidden">
+            <div class="section-header">
+                <h2>HU-04 · Reporte Periódico de Cumplimiento</h2>
+                <p>Ejecución de metas de inversión y empleo de empresas instaladas.</p>
+            </div>
+            <form id="form-cumplimiento" class="card-form" autocomplete="off">
+                <div class="form-group full-width">
+                    <label for="empresaIdCumplimiento">ID de Empresa Instalada</label>
+                    <input type="text" id="empresaIdCumplimiento" maxlength="20" required placeholder="ej. EMP-001">
+                </div>
+                <div class="form-group">
+                    <label for="inversionEjecutada">Inversión Ejecutada ($ USD)</label>
+                    <input type="number" id="inversionEjecutada" min="0" max="1000000000" required>
+                </div>
+                <div class="form-group">
+                    <label for="empleosReales">Empleos Reales Generados</label>
+                    <input type="number" id="empleosReales" min="0" max="99999" required>
+                </div>
+                <div class="form-group full-width btn-container">
+                    <button type="submit" class="btn-primary">Enviar Reporte</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- HU-05: AUDITORÍA Y ALERTAS (RF-14) -->
+        <section id="sec-auditoria" class="modulo-seccion hidden">
+            <div class="section-header">
+                <h2>HU-05 · Monitor de Alertas de Incumplimiento</h2>
+                <p>Auditoría sobre contratos activos de zona franca.</p>
+            </div>
+
+            <div class="filtros-barra">
+                <select id="filtro-alerta">
+                    <option value="TODOS">Todas las alertas</option>
+                    <option value="CUMPLE">Cumple (verde)</option>
+                    <option value="ALERTA_AMARILLA">Alerta amarilla</option>
+                    <option value="ALERTA_ROJA">Alerta roja</option>
+                </select>
+                <button id="btn-exportar-reportes" class="btn-fantasma" type="button">Exportar CSV</button>
+            </div>
+
+            <div class="table-container">
+                <table id="tabla-cumplimiento">
+                    <thead>
+                        <tr>
+                            <th>ID Reporte</th>
+                            <th>Empresa</th>
+                            <th>Compromiso vs Real</th>
+                            <th>% Cumplimiento</th>
+                            <th>Alerta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-alertas-cumplimiento"></tbody>
+                </table>
+            </div>
+
+            <div class="section-header" style="margin-top: 2rem;">
+                <h2>Bitácora de Auditoría (RF-14)</h2>
+                <p>Trazabilidad completa de dictámenes y cambios de estado.</p>
+            </div>
+            <div class="table-container">
+                <table id="tabla-bitacora">
+                    <thead>
+                        <tr>
+                            <th>Fecha / Hora</th>
+                            <th>Usuario</th>
+                            <th>Solicitud</th>
+                            <th>Acción</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-bitacora"></tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <script type="module" src="/src/js/app.js"></script>
+</body>
+</html>

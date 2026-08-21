@@ -20,12 +20,35 @@
       <nav class="sidebar-nav">
         <ul>
           <li class="active">
-            <a href="#">
+            <a href="#" onclick="showSection('dashboard')">
               <span class="icon">📊</span>
               <span class="text">Panel Principal</span>
             </a>
           </li>
-          <!-- Aquí agregaremos los nuevos apartados más adelante -->
+          <li>
+            <a href="#" onclick="showSection('solicitudes-enviadas')">
+              <span class="icon">📩</span>
+              <span class="text">Solicitudes Enviadas</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" onclick="showSection('historial-aceptadas')">
+              <span class="icon">✅</span>
+              <span class="text">Historial Aceptadas</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" onclick="showSection('historial-rechazadas')">
+              <span class="icon">❌</span>
+              <span class="text">Historial Rechazadas</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" onclick="showSection('gestion-global')">
+              <span class="icon">📁</span>
+              <span class="text">Información General</span>
+            </a>
+          </li>
         </ul>
       </nav>
 
@@ -54,19 +77,82 @@
 
       <!-- Área de Contenido Dinámico -->
       <main class="content-area">
-        <div class="page-header">
-          <h1>Panel de Control</h1>
-          <p class="subtitle">Bienvenido al sistema de gestión de Proponer.</p>
-        </div>
-
-        <!-- Contenedor vacío donde iremos agregando los módulos y herramientas -->
-        <div class="dashboard-placeholder">
-          <div class="placeholder-card">
-            <span class="placeholder-icon">⚙️</span>
-            <h3>Área de Trabajo Lista</h3>
-            <p>Selecciona un apartado del menú lateral o agrega nuevos módulos de administración.</p>
+        
+        <!-- Vista 1: Dashboard Principal -->
+        <section id="dashboard" class="content-section">
+          <div class="page-header">
+            <h1>Panel de Control</h1>
+            <p class="subtitle">Bienvenido al sistema de gestión de Proponer.</p>
           </div>
-        </div>
+          <div class="dashboard-placeholder">
+            <div class="placeholder-card">
+              <span class="placeholder-icon">⚙️</span>
+              <h3>Área de Trabajo Lista</h3>
+              <p>Selecciona un apartado del menú lateral para gestionar las solicitudes.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Vista 2: Solicitudes Enviadas -->
+        <section id="solicitudes-enviadas" class="content-section" style="display: none;">
+          <div class="page-header">
+            <h1>Solicitudes Enviadas</h1>
+            <p class="subtitle">Revisiones pendientes del proyecto reciente.</p>
+          </div>
+          <div class="dashboard-placeholder">
+            <div class="placeholder-card">
+              <span class="placeholder-icon">📩</span>
+              <h3>Solicitudes Recibidas</h3>
+              <p>Aquí se cargará la tabla o listado de solicitudes para ser evaluadas por el administrador.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Vista 3: Historial Aceptadas -->
+        <section id="historial-aceptadas" class="content-section" style="display: none;">
+          <div class="page-header">
+            <h1>Historial de Solicitudes Aceptadas</h1>
+            <p class="subtitle">Registro de postulaciones aprobadas.</p>
+          </div>
+          <div class="dashboard-placeholder">
+            <div class="placeholder-card">
+              <span class="placeholder-icon">✅</span>
+              <h3>Solicitudes Aprobadas</h3>
+              <p>Aquí aparecerá el histórico con los detalles de aprobación.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Vista 4: Historial Rechazadas -->
+        <section id="historial-rechazadas" class="content-section" style="display: none;">
+          <div class="page-header">
+            <h1>Historial de Solicitudes Rechazadas</h1>
+            <p class="subtitle">Registro de postulaciones denegadas.</p>
+          </div>
+          <div class="dashboard-placeholder">
+            <div class="placeholder-card">
+              <span class="placeholder-icon">❌</span>
+              <h3>Solicitudes Denegadas</h3>
+              <p>Aquí se mostrarán las solicitudes descartadas con sus respectivas observaciones.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Vista 5: Información General -->
+        <section id="gestion-global" class="content-section" style="display: none;">
+          <div class="page-header">
+            <h1>Información General y Usuarios</h1>
+            <p class="subtitle">Consolidado completo de postulantes y datos de solicitudes.</p>
+          </div>
+          <div class="dashboard-placeholder">
+            <div class="placeholder-card">
+              <span class="placeholder-icon">📁</span>
+              <h3>Base de Datos Unificada</h3>
+              <p>Aquí podrás visualizar los datos completos del remitente (nombre, correo, empresa) junto al estado de su solicitud.</p>
+            </div>
+          </div>
+        </section>
+
       </main>
 
     </div>
@@ -74,10 +160,28 @@
   </div>
 
   <script>
-    // Permite contraer/expandir la barra lateral en pantallas pequeñas
+    // Contraer/expandir la barra lateral
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar');
       sidebar.classList.toggle('collapsed');
+    }
+
+    // Alternar visibilidad de las secciones
+    function showSection(sectionId) {
+      // Oculta todas las secciones
+      const sections = document.querySelectorAll('.content-section');
+      sections.forEach(section => section.style.display = 'none');
+
+      // Muestra la sección seleccionada
+      const targetSection = document.getElementById(sectionId);
+      if (targetSection) {
+        targetSection.style.display = 'block';
+      }
+
+      // Actualiza la clase active en el menú
+      const menuItems = document.querySelectorAll('.sidebar-nav li');
+      menuItems.forEach(item => item.classList.remove('active'));
+      event.currentTarget.parentElement.classList.add('active');
     }
   </script>
 </body>

@@ -255,6 +255,99 @@ tbody tr:hover {
   z-index: 9999;
 }
 
+.toast-success {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  background-color: var(--green-ok);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 9999;
+}
+
+/* --- BADGES SECUNDARIOS Y ACCIONES --- */
+.badge-warning {
+  background-color: #E67E22;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.badge-neutral {
+  background-color: var(--text-muted);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.btn-mini {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: white;
+  margin: 2px;
+  transition: opacity 0.2s ease;
+}
+
+.btn-mini:hover {
+  opacity: 0.85;
+}
+
+.btn-aprobar { background-color: var(--green-ok); }
+.btn-rechazar { background-color: var(--red-alert); }
+.btn-reevaluar { background-color: var(--navy-primary); }
+
+.acciones-cell { white-space: nowrap; }
+
+.text-muted { color: var(--text-muted); font-size: 0.8rem; }
+
+.ia-fallback {
+  color: #E67E22;
+  font-weight: bold;
+  font-size: 0.75rem;
+}
+
+/* --- TARJETA DE RESULTADO PRE-SELECCIÓN IA (RF-04) --- */
+.ia-resultado {
+  background: var(--card-bg);
+  border: 1px solid var(--teal-accent);
+  border-left: 6px solid var(--teal-accent);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 4px 10px rgba(0, 168, 143, 0.12);
+}
+
+.ia-resultado h3 {
+  color: var(--navy-primary);
+  font-size: 1.05rem;
+  margin-bottom: 0.8rem;
+}
+
+.ia-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.ia-grid p, .ia-resultado > p {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .ia-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
   .navbar {

@@ -1,20 +1,21 @@
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZoFranca CR - Plataforma de Gestión y Cumplimiento</title>
-    <link rel="stylesheet" href="../styles/styles.css">
+      <link rel="stylesheet" href="../styles/styles.css">
 </head>
 <body>
 
     <!-- RF-02: Indicador de Carga Asíncrono (Spinner) -->
     <div id="loading-spinner" class="spinner-overlay hidden" aria-hidden="true">
         <div class="spinner">
-            <p style="color: white; font-weight: bold;">Procesando petición asíncrona...</p>
+            <p id="spinner-text" style="color: white; font-weight: bold;">Procesando petición asíncrona...</p>
         </div>
     </div>
 
-    <!-- Toast de Notificación de Errores (Fallback UI) -->
+    <!-- Toast de Notificación (Fallback UI) -->
     <div id="toast-error" class="toast-error hidden" role="alert">
         <span id="toast-message">Error de Conexión</span>
     </div>
@@ -26,10 +27,10 @@
             <h1>ZoFranca CR <span class="tagline">| Gestión de Zonas Francas</span></h1>
         </div>
         <nav>
-            <button class="nav-btn active" onclick="mostrarSeccion('sec-solicitud')">Enviar Solicitud (HU-01)</button>
-            <button class="nav-btn" onclick="mostrarSeccion('sec-analista')">Panel Analista (HU-02, 03)</button>
-            <button class="nav-btn" onclick="mostrarSeccion('sec-reporte')">Reporte Cumplimiento (HU-04)</button>
-            <button class="nav-btn" onclick="mostrarSeccion('sec-auditoria')">Panel Auditoría (HU-05)</button>
+            <button class="nav-btn active" data-section="sec-solicitud">Enviar Solicitud (HU-01)</button>
+            <button class="nav-btn" data-section="sec-analista">Panel Analista (HU-02, 03)</button>
+            <button class="nav-btn" data-section="sec-reporte">Reporte Cumplimiento (HU-04)</button>
+            <button class="nav-btn" data-section="sec-auditoria">Panel Auditoría (HU-05)</button>
         </nav>
     </header>
 
@@ -41,7 +42,7 @@
                 <h2>HU-01: Registro y Envío de Solicitud de Instalación</h2>
                 <p>Complete el formulario para iniciar la evaluación institucional de su empresa.</p>
             </div>
-            
+
             <form id="form-solicitud" class="card-form" novalidate>
                 <div class="form-group">
                     <label for="empresaNombre">Nombre de la Empresa:</label>
@@ -52,9 +53,10 @@
                     <label for="sectorEmpresa">Sector Actividad:</label>
                     <select id="sectorEmpresa" name="sectorEmpresa" required>
                         <option value="">Seleccione un sector</option>
-                        <option value="tecnologia">Tecnología</option>
-                        <option value="manufactura">Manufactura Advanced</option>
-                        <option value="bpo">Servicios (BPO)</option>
+                        <option value="Ciencias de la Vida">Ciencias de la Vida</option>
+                        <option value="Manufactura Avanzada">Manufactura Avanzada</option>
+                        <option value="Servicios">Servicios (BPO)</option>
+                        <option value="Logística">Logística</option>
                     </select>
                 </div>
 
@@ -69,9 +71,9 @@
                 </div>
 
                 <div class="form-group full-width">
-                    <label for="documentosAdjuntos">Documentación de Respaldo (.PDF o .ZIP, máx 10MB):</label>
-                    <input type="file" id="documentosAdjuntos" name="documentosAdjuntos" accept=".pdf,.zip" required>
-                    <small id="error-file" class="error-text style-error">
+                    <label for="documentosAdjuntos">Documentación de Respaldo (.PDF estricto, máx 10MB):</label>
+                    <input type="file" id="documentosAdjuntos" name="documentosAdjuntos" accept=".pdf,application/pdf" required>
+                    <small id="error-file" class="style-error">
                         El archivo excede 10MB o tiene un formato no válido.
                     </small>
                 </div>
@@ -80,6 +82,19 @@
                     <button type="submit" id="btn-submit-solicitud" class="btn-primary">Enviar Solicitud a Evaluación</button>
                 </div>
             </form>
+
+            <!-- RF-04/RF-05: Resultado visible de la pre-clasificación IA -->
+            <div id="resultado-ia" class="ia-resultado hidden">
+                <h3>Resultado de la Pre-clasificación IA (RF-04)</h3>
+                <div class="ia-grid">
+                    <p><strong>Solicitud:</strong> <span id="ia-id">-</span></p>
+                    <p><strong>Puntaje de afinidad:</strong> <span id="ia-puntaje">-</span></p>
+                    <p><strong>Nivel de recomendación:</strong> <span id="ia-nivel">-</span></p>
+                    <p><strong>Motor utilizado:</strong> <span id="ia-motor">-</span></p>
+                </div>
+                <p><strong>Justificación:</strong> <span id="ia-justificacion">-</span></p>
+                <p class="text-muted"><strong>Fecha de evaluación:</strong> <span id="ia-fecha">-</span></p>
+            </div>
         </section>
 
         <!-- SECCIÓN 2: PANEL DE ANALISTA (HU-02, HU-03) -->
@@ -122,12 +137,12 @@
 
                 <div class="form-group">
                     <label for="inversionEjecutada">Inversión Ejecutada ($ USD):</label>
-                    <input type="number" id="inversionEjecutada" name="inversionEjecutada" required>
+                    <input type="number" id="inversionEjecutada" name="inversionEjecutada" min="0" required>
                 </div>
 
                 <div class="form-group">
                     <label for="empleosReales">Empleos Reales Generados:</label>
-                    <input type="number" id="empleosReales" name="empleosReales" required>
+                    <input type="number" id="empleosReales" name="empleosReales" min="0" required>
                 </div>
 
                 <div class="form-group full-width btn-container">
@@ -158,19 +173,32 @@
                     </tbody>
                 </table>
             </div>
+
+            <div class="section-header" style="margin-top: 2rem;">
+                <h2>Bitácora de Auditoría (RF-14)</h2>
+                <p>Trazabilidad de dictámenes y cambios de estado.</p>
+            </div>
+            <div class="table-container">
+                <table id="tabla-bitacora">
+                    <thead>
+                        <tr>
+                            <th>Fecha / Hora</th>
+                            <th>Usuario</th>
+                            <th>Solicitud</th>
+                            <th>Acción</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-bitacora">
+                        <!-- Carga dinámica vía JS -->
+                    </tbody>
+                </table>
+            </div>
         </section>
 
     </main>
 
-    <!-- Scripts de la lógica del sistema -->
-    <script type="module" src="js/apiService.js"></script>
-    <script type="module" src="js/iaService.js"></script>
-    <script type="module" src="js/app.js"></script>
-    <script>
-        function mostrarSeccion(idSeccion) {
-            document.querySelectorAll('.modulo-seccion').forEach(sec => sec.classList.add('hidden'));
-            document.getElementById(idSeccion).classList.remove('hidden');
-        }
-    </script>
+    <!-- Lógica del sistema (módulos ES) -->
+    <script type="module" src="/src/js/app.js"></script>
 </body>
 </html>

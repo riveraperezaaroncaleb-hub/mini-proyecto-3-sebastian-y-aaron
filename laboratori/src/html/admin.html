@@ -1,0 +1,84 @@
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración - Proponer</title>
+  <link rel="stylesheet" href="../styles/admins.css">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="admin-layout">
+    
+    <!-- Barra Lateral (Sidebar) -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e2/Logo_PROCOMER.png?utm_source=es.wikipedia.org&utm_campaign=index&utm_content=original" alt="Logo Proponer Admin" class="sidebar-logo">
+      </div>
+
+      <!-- Menú de Navegación -->
+      <nav class="sidebar-nav">
+        <ul>
+          <li class="active">
+            <a href="#">
+              <span class="icon">📊</span>
+              <span class="text">Panel Principal</span>
+            </a>
+          </li>
+          <!-- Aquí agregaremos los nuevos apartados más adelante -->
+        </ul>
+      </nav>
+
+      <!-- Pie de Barra Lateral / Salir -->
+      <div class="sidebar-footer">
+        <a href="index.html" class="logout-link">
+          <span class="icon">🚪</span>
+          <span class="text">Cerrar Sesión</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <div class="main-wrapper">
+      
+      <!-- Encabezado Superior (Topbar) -->
+      <header class="topbar">
+        <button class="toggle-btn" onclick="toggleSidebar()" aria-label="Alternar menú">
+          ☰
+        </button>
+        <div class="user-profile">
+          <span class="user-role">Administrador</span>
+          <div class="avatar">A</div>
+        </div>
+      </header>
+
+      <!-- Área de Contenido Dinámico -->
+      <main class="content-area">
+        <div class="page-header">
+          <h1>Panel de Control</h1>
+          <p class="subtitle">Bienvenido al sistema de gestión de Proponer.</p>
+        </div>
+
+        <!-- Contenedor vacío donde iremos agregando los módulos y herramientas -->
+        <div class="dashboard-placeholder">
+          <div class="placeholder-card">
+            <span class="placeholder-icon">⚙️</span>
+            <h3>Área de Trabajo Lista</h3>
+            <p>Selecciona un apartado del menú lateral o agrega nuevos módulos de administración.</p>
+          </div>
+        </div>
+      </main>
+
+    </div>
+
+  </div>
+
+  <script>
+    // Permite contraer/expandir la barra lateral en pantallas pequeñas
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('collapsed');
+    }
+  </script>
+</body>
+</html>

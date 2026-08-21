@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proponer - Bienvenida</title>
+    <link rel="stylesheet" href="../styles/login.css">
+</head>
+<body>
+
+  <!-- Encabezado con Logo y Botón -->
+  <header class="navbar">
+    <div class="logo-container">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e2/Logo_PROCOMER.png?utm_source=es.wikipedia.org&utm_campaign=index&utm_content=original" alt="Logo Proponer" class="logo">
+    </div>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="openLoginModal()">Trabaja con nosotros</button>
+    </div>
+  </header>
+
+  <!-- Contenido Central -->
+  <main class="hero-container">
+    <div class="card shadow">
+      <h1>Bienvenido a Proponer</h1>
+      <p class="description">
+        Proponer es la plataforma integral diseñada para potenciar y gestionar proyectos de innovación, 
+        desarrollo comercial y encadenamientos productivos. Nuestro compromiso es facilitar el crecimiento 
+        estratégico mediante herramientas digitales ágiles, transparentes y enfocadas en resultados.
+      </p>
+
+      <hr class="divider">
+
+      <!-- Sección de Selección de Rol -->
+      <div class="role-selection">
+        <h2>¿Cómo deseas ingresar?</h2>
+        <p class="subtitle">Selecciona tu tipo de perfil para continuar:</p>
+        
+        <div class="button-group">
+         <!-- Tarjeta Cliente -->
+         <a href="index.html" class="role-card">
+           <span class="icon">👤</span>
+           <span class="title">Cliente</span>
+          <span class="description-text">Acceder al portal principal</span>
+         </a>
+
+         <!-- Tarjeta Administrador -->
+         <div class="role-card" onclick="accessAdmin()">
+          <span class="icon">🔒</span>
+          <span class="title">Administrador</span>
+          <span class="description-text">Gestión y configuración</span>
+       </div>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  // Control del modal "Trabaja con nosotros"
+  function openLoginModal() {
+    const modal = document.getElementById('loginModal');
+    modal.classList.add('active');
+  }
+
+  function closeLoginModal() {
+    const modal = document.getElementById('loginModal');
+    modal.classList.remove('active');
+  }
+
+  function handleLoginSubmit(event) {
+    event.preventDefault();
+    alert("Iniciando sesión en el portal de colaboradores...");
+    closeLoginModal();
+  }
+
+  // Control del modal "Administrador"
+  function accessAdmin() {
+    const modal = document.getElementById('adminModal');
+    modal.classList.add('active');
+    document.getElementById('adminPassword').focus();
+  }
+
+  function closeAdminModal() {
+    const modal = document.getElementById('adminModal');
+    modal.classList.remove('active');
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('modalError').style.display = 'none';
+  }
+
+  function validateAdminPassword(event) {
+    event.preventDefault();
+    const passwordInput = document.getElementById('adminPassword').value;
+    const errorMsg = document.getElementById('modalError');
+
+    if (passwordInput === "1234") {
+      window.location.href = "admin.html";
+    } else {
+      errorMsg.style.display = 'block';
+      document.getElementById('adminPassword').value = '';
+    }
+  }
+
+  // Cierra el modal correspondiente al hacer clic fuera del recuadro
+  window.onclick = function(event) {
+    const adminModal = document.getElementById('adminModal');
+    const loginModal = document.getElementById('loginModal');
+    
+    if (event.target === adminModal) {
+      closeAdminModal();
+    }
+    if (event.target === loginModal) {
+      closeLoginModal();
+    }
+  }
+</script>
+
+  <!-- Modal de Contraseña para Administrador -->
+<div id="adminModal" class="modal-overlay">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeAdminModal()">&times;</button>
+    <div class="modal-icon">🔒</div>
+    <h3>Acceso de Administrador</h3>
+    <p class="modal-text">Ingrese la clave de seguridad para continuar:</p>
+    
+    <form onsubmit="validateAdminPassword(event)">
+      <input type="password" id="adminPassword" class="modal-input" placeholder="Contraseña" required autofocus>
+      <div id="modalError" class="modal-error">Contraseña incorrecta. Inténtelo de nuevo.</div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="closeAdminModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Ingresar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal de Login "Trabaja con nosotros" -->
+<div id="loginModal" class="modal-overlay">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+    <div class="modal-icon">💼</div>
+    <h3>Trabaja con nosotros</h3>
+    <p class="modal-text">Ingresa tus credenciales para acceder al portal de colaboradores:</p>
+    
+    <form onsubmit="handleLoginSubmit(event)">
+      <input type="email" class="modal-input" placeholder="Correo electrónico" required autofocus>
+      <input type="password" class="modal-input" placeholder="Contraseña" required>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="closeLoginModal()">Cancelar</button>
+        <button type="submit" class="btn btn-secondary">Iniciar Sesión</button>
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+</html>

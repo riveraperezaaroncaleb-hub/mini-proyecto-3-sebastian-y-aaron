@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proponer - Bienvenida</title>
+    <link rel="stylesheet" href="../styles/login.css">
+</head>
+<body>
+
+  <!-- Encabezado con Logo y Botón -->
+  <header class="navbar">
+    <div class="logo-container">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e2/Logo_PROCOMER.png?utm_source=es.wikipedia.org&utm_campaign=index&utm_content=original" alt="Logo Proponer" class="logo">
+    </div>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="openLogin()">Trabaja con nosotros</button>
+    </div>
+  </header>
+
+  <!-- Contenido Central -->
+  <main class="hero-container">
+    <div class="card shadow">
+      <h1>Bienvenido a Proponer</h1>
+      <p class="description">
+        Proponer es la plataforma integral diseñada para potenciar y gestionar proyectos de innovación, 
+        desarrollo comercial y encadenamientos productivos. Nuestro compromiso es facilitar el crecimiento 
+        estratégico mediante herramientas digitales ágiles, transparentes y enfocadas en resultados.
+      </p>
+
+      <hr class="divider">
+
+      <!-- Sección de Selección de Rol -->
+      <div class="role-selection">
+        <h2>¿Cómo deseas ingresar?</h2>
+        <p class="subtitle">Selecciona tu tipo de perfil para continuar:</p>
+        
+        <div class="button-group">
+         <!-- Tarjeta Cliente -->
+         <a href="index.html" class="role-card">
+           <span class="icon">👤</span>
+           <span class="title">Cliente</span>
+          <span class="description-text">Acceder al portal principal</span>
+         </a>
+
+         <!-- Tarjeta Administrador -->
+         <div class="role-card" onclick="accessAdmin()">
+          <span class="icon">🔒</span>
+          <span class="title">Administrador</span>
+          <span class="description-text">Gestión y configuración</span>
+       </div>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  function openLogin() {
+    window.open('login.html', '_blank'); 
+  }
+
+  // Abre el modal centrado
+  function accessAdmin() {
+    const modal = document.getElementById('adminModal');
+    modal.classList.add('active');
+    document.getElementById('adminPassword').focus();
+  }
+
+  // Cierra el modal y limpia el formulario
+  function closeAdminModal() {
+    const modal = document.getElementById('adminModal');
+    modal.classList.remove('active');
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('modalError').style.display = 'none';
+  }
+
+  // Valida la clave sin recargar la página
+  function validateAdminPassword(event) {
+    event.preventDefault();
+    const passwordInput = document.getElementById('adminPassword').value;
+    const errorMsg = document.getElementById('modalError');
+
+    // Cambia '1234' por tu clave
+    if (passwordInput === "1234") {
+      window.location.href = "admin.html"; // Redirección al panel admin
+    } else {
+      errorMsg.style.display = 'block';
+      document.getElementById('adminPassword').value = '';
+    }
+  }
+
+  // Cierra el modal si el usuario hace clic fuera de la tarjeta
+  window.onclick = function(event) {
+    const modal = document.getElementById('adminModal');
+    if (event.target === modal) {
+      closeAdminModal();
+    }
+  }
+</script>
+
+  <!-- Modal de Contraseña para Administrador -->
+<div id="adminModal" class="modal-overlay">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeAdminModal()">&times;</button>
+    <div class="modal-icon">🔒</div>
+    <h3>Acceso de Administrador</h3>
+    <p class="modal-text">Ingrese la clave de seguridad para continuar:</p>
+    
+    <form onsubmit="validateAdminPassword(event)">
+      <input type="password" id="adminPassword" class="modal-input" placeholder="Contraseña" required autofocus>
+      <div id="modalError" class="modal-error">Contraseña incorrecta. Inténtelo de nuevo.</div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="closeAdminModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Ingresar</button>
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+</html>

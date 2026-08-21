@@ -1,0 +1,244 @@
+/* Variables basadas en la paleta institucional de PROCOMER */
+:root {
+  --primary-color: #003366;      /* Azul institucional oscuro */
+  --secondary-color: #00A3E0;    /* Azul claro / Turquesa */
+  --accent-color: #0082B3;       /* Azul medio */
+  --sidebar-bg: #002244;         /* Azul muy oscuro para el menú lateral */
+  --text-dark: #2D3748;
+  --text-muted: #718096;
+  --bg-light: #F4F7F9;
+  --white: #FFFFFF;
+  --font-main: 'Open Sans', sans-serif;
+  --sidebar-width: 260px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  min-height: 100vh;
+}
+
+/* Estructura Principal */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Barra Lateral (Sidebar) */
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--sidebar-bg);
+  color: var(--white);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logo {
+  max-height: 40px;
+  width: auto;
+}
+
+/* Menú de Navegación */
+.sidebar-nav {
+  flex: 1;
+  padding: 1.5rem 0;
+  overflow-y: auto;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+}
+
+.sidebar-nav li a {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.5rem;
+  color: #CBD5E0;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-left: 4px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.sidebar-nav li a:hover,
+.sidebar-nav li.active a {
+  color: var(--white);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-left-color: var(--secondary-color);
+}
+
+.sidebar-nav .icon {
+  font-size: 1.2rem;
+}
+
+/* Footer de Sidebar */
+.sidebar-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logout-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #FC8181;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.logout-link:hover {
+  color: #FEB2B2;
+}
+
+/* Áreas Principales y Topbar */
+.main-wrapper {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.topbar {
+  background-color: var(--white);
+  height: 64px;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  cursor: pointer;
+  display: none;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+.user-role {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--primary-color);
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* Área de Contenido */
+.content-area {
+  padding: 2rem;
+  flex: 1;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  color: var(--primary-color);
+  font-size: 1.75rem;
+}
+
+.page-header .subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* Placeholder temporal para el contenido */
+.dashboard-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 350px;
+}
+
+.placeholder-card {
+  background-color: var(--white);
+  border: 2px dashed #CBD5E0;
+  border-radius: 8px;
+  padding: 3rem;
+  text-align: center;
+  max-width: 450px;
+}
+
+.placeholder-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.placeholder-card h3 {
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.placeholder-card p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Adaptabilidad para móviles */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.collapsed {
+    transform: translateX(0);
+  }
+  
+  .main-wrapper {
+    margin-left: 0;
+  }
+  
+  .toggle-btn {
+    display: block;
+  }
+}

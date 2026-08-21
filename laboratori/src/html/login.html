@@ -14,7 +14,7 @@
       <img src="https://upload.wikimedia.org/wikipedia/commons/e/e2/Logo_PROCOMER.png?utm_source=es.wikipedia.org&utm_campaign=index&utm_content=original" alt="Logo Proponer" class="logo">
     </div>
     <div class="actions">
-      <button class="btn btn-secondary" onclick="openLogin()">Trabaja con nosotros</button>
+      <button class="btn btn-secondary" onclick="openLoginModal()">Trabaja con nosotros</button>
     </div>
   </header>
 
@@ -55,18 +55,30 @@
   </main>
 
   <script>
-  function openLogin() {
-    window.open('login.html', '_blank'); 
+  // Control del modal "Trabaja con nosotros"
+  function openLoginModal() {
+    const modal = document.getElementById('loginModal');
+    modal.classList.add('active');
   }
 
-  // Abre el modal centrado
+  function closeLoginModal() {
+    const modal = document.getElementById('loginModal');
+    modal.classList.remove('active');
+  }
+
+  function handleLoginSubmit(event) {
+    event.preventDefault();
+    alert("Iniciando sesión en el portal de colaboradores...");
+    closeLoginModal();
+  }
+
+  // Control del modal "Administrador"
   function accessAdmin() {
     const modal = document.getElementById('adminModal');
     modal.classList.add('active');
     document.getElementById('adminPassword').focus();
   }
 
-  // Cierra el modal y limpia el formulario
   function closeAdminModal() {
     const modal = document.getElementById('adminModal');
     modal.classList.remove('active');
@@ -74,26 +86,29 @@
     document.getElementById('modalError').style.display = 'none';
   }
 
-  // Valida la clave sin recargar la página
   function validateAdminPassword(event) {
     event.preventDefault();
     const passwordInput = document.getElementById('adminPassword').value;
     const errorMsg = document.getElementById('modalError');
 
-    // Cambia '1234' por tu clave
     if (passwordInput === "1234") {
-      window.location.href = "admin.html"; // Redirección al panel admin
+      window.location.href = "admin.html";
     } else {
       errorMsg.style.display = 'block';
       document.getElementById('adminPassword').value = '';
     }
   }
 
-  // Cierra el modal si el usuario hace clic fuera de la tarjeta
+  // Cierra el modal correspondiente al hacer clic fuera del recuadro
   window.onclick = function(event) {
-    const modal = document.getElementById('adminModal');
-    if (event.target === modal) {
+    const adminModal = document.getElementById('adminModal');
+    const loginModal = document.getElementById('loginModal');
+    
+    if (event.target === adminModal) {
       closeAdminModal();
+    }
+    if (event.target === loginModal) {
+      closeLoginModal();
     }
   }
 </script>
@@ -113,6 +128,26 @@
       <div class="modal-actions">
         <button type="button" class="btn btn-outline" onclick="closeAdminModal()">Cancelar</button>
         <button type="submit" class="btn btn-primary">Ingresar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal de Login "Trabaja con nosotros" -->
+<div id="loginModal" class="modal-overlay">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+    <div class="modal-icon">💼</div>
+    <h3>Trabaja con nosotros</h3>
+    <p class="modal-text">Ingresa tus credenciales para acceder al portal de colaboradores:</p>
+    
+    <form onsubmit="handleLoginSubmit(event)">
+      <input type="email" class="modal-input" placeholder="Correo electrónico" required autofocus>
+      <input type="password" class="modal-input" placeholder="Contraseña" required>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="closeLoginModal()">Cancelar</button>
+        <button type="submit" class="btn btn-secondary">Iniciar Sesión</button>
       </div>
     </form>
   </div>

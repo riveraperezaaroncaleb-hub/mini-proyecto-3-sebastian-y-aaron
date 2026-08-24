@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Analista · Zona Franca CR</title>
+    <link rel="stylesheet" href="/src/styles/styles.css">
+    <link rel="stylesheet" href="/src/styles/global.css">
+    <script>
+      (function(){
+        var t = localStorage.getItem('zf_tema') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
+</head>
+<body>
+
+    <div id="loading-spinner" class="spinner-overlay hidden" aria-hidden="true">
+        <div class="spinner"><p id="spinner-text">Procesando...</p></div>
+    </div>
+    <div id="toast-error" class="toast-error hidden" role="alert" aria-live="polite"><span id="toast-message"></span></div>
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+            <h3 id="modal-titulo"></h3>
+            <p id="modal-mensaje" class="hidden"></p>
+            <div id="modal-contenido" class="hidden"></div>
+            <textarea id="modal-input" class="hidden" maxlength="500"
+                placeholder="Escriba la justificación de su decisión..."></textarea>
+            <div id="modal-contador" class="char-counter hidden">0/500</div>
+            <div class="modal-acciones">
+                <button id="modal-btn-cancelar" class="btn-secondary" type="button">Cancelar</button>
+                <button id="modal-btn-aceptar" class="btn-primary" type="button">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="navbar">
+        <div class="brand-container">
+            <div class="logo-badge">ZF</div>
+            <h1 data-i18n="app.titulo">Zona Franca CR</h1>
+            <span class="tagline">Panel del Analista · <span id="usuario-actual">—</span></span>
+        </div>
+        <nav aria-label="Navegación principal">
+            <button class="nav-btn active" data-section="sec-analista" data-i18n="nav.analista">Analista</button>
+            <button class="nav-btn" data-section="sec-reporte" data-i18n="nav.cumplimiento">Cumplimiento</button>
+            <button class="nav-btn" data-section="sec-auditoria" data-i18n="nav.auditoria">Auditoría</button>
+            <button class="nav-btn" data-section="sec-chat" data-i18n="nav.mensajes">Mensajería</button>
+            <a class="nav-btn" href="/" style="text-decoration:none;">Salir</a>
+        </nav>
+        <div class="controles-globales">
+            <button class="campana" id="btn-notificaciones" title="Alertas de cumplimiento">🔔<span class="campana-badge hidden" id="badge-alertas">0</span></button>
+            <select class="idioma-select" data-idioma-selector aria-label="Idioma"></select>
+            <button class="tema-btn" data-tema-toggle aria-label="Alternar tema">🌙</button>
+        </div>
+    </header>
+
+    <main class="main-container">
+
+        <!-- KPIs -->
+        <section class="kpi-strip" aria-label="Indicadores generales">
+            <div class="kpi-card"><span class="kpi-valor" id="kpi-total">-</span><span class="kpi-etiqueta">Solicitudes</span></div>
+            <div class="kpi-card"><span class="kpi-valor" id="kpi-pendientes">-</span><span class="kpi-etiqueta">Pendientes</span></div>
+            <div class="kpi-card"><span class="kpi-valor" id="kpi-aprobadas">-</span><span class="kpi-etiqueta">Aprobadas</span></div>
+            <div class="kpi-card"><span class="kpi-valor" id="kpi-ia-promedio">-</span><span class="kpi-etiqueta">Afinidad IA prom.</span></div>
+            <div class="kpi-card kpi-alerta"><span class="kpi-valor" id="kpi-alertas">-</span><span class="kpi-etiqueta">Alertas rojas</span></div>
+        </section>
+
+        <!-- US-02/03: Bandeja de solicitudes con pre-clasificación IA -->
+        <section id="sec-analista" class="modulo-seccion">
+            <div class="section-header">
+                <h2>Bandeja de Solicitudes · Pre-clasificación IA</h2>
+                <p>Orden por puntaje de afinidad descendente. Seleccione una solicitud para ver el expediente completo.</p>
+            </div>
+
+            <div class="filtros-barra">
+                <input type="text" id="filtro-busqueda" maxlength="60" placeholder="Buscar por empresa, ID o cédula...">
+                <select id="filtro-estado">
+                    <option value="TODOS">Todos los estados</option>
+                    <option value="PENDIENTE_EVALUACION">Pendientes</option>
+                    <option value="APROBADA">Aprobadas</option>
+                    <option value="RECHAZADA">Rechazadas</option>
+                </select>
+                <select id="filtro-clasificacion">
+                    <option value="TODAS">Toda clasificación</option>
+                    <option value="PRE_CLASIFICADA">Pre-clasificada</option>
+                    <option value="REQUIERE_REVISION">Requiere revisión manual</option>
+                    <option value="INCOMPLETA">Incompleta</option>
+                </select>
+                <select id="orden-afinidad">
+                    <option value="desc">Afinidad ↓ (mayor a menor)</option>
+                    <option value="asc">Afinidad ↑ (menor a mayor)</option>
+                    <option value="fecha">Más recientes primero</option>
+                </select>
+                <button id="btn-exportar-xlsx" class="btn-fantasma" type="button">Exportar Excel</button>
+            </div>
+
+            <div class="table-container">
+                <table id="tabla-solicitudes">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Empresa</th>
+                            <th>Inversión</th>
+                            <th>Empleos</th>
+                            <th>Afinidad IA</th>
+                            <th>Clasificación</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-solicitudes-pendientes"></tbody>
+                </table>
+                <div class="paginacion">
+                    <span id="paginacion-info">-</span>
+                    <button id="btn-prev" class="btn-fantasma" type="button">&larr; Anterior</button>
+                    <button id="btn-next" class="btn-fantasma" type="button">Siguiente &rarr;</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- US-04: Reporte de cumplimiento -->
+        <section id="sec-reporte" class="modulo-seccion hidden">
+            <div class="section-header">
+                <h2>Reporte Periódico de Cumplimiento</h2>
+                <p>Ejecución de metas de inversión y empleo de empresas instaladas.</p>
+            </div>
+            <form id="form-cumplimiento" class="card-form" autocomplete="off">
+                <div class="form-group full-width">
+                    <label for="empresaIdCumplimiento">ID de Empresa Instalada</label>
+                    <input type="text" id="empresaIdCumplimiento" maxlength="20" required placeholder="ej. EMP-001">
+                </div>
+                <div class="form-group">
+                    <label for="inversionEjecutada">Inversión Ejecutada ($ USD)</label>
+                    <input type="number" id="inversionEjecutada" min="0" max="1000000000" required>
+                </div>
+                <div class="form-group">
+                    <label for="empleosReales">Empleos Reales Generados</label>
+                    <input type="number" id="empleosReales" min="0" max="99999" required>
+                </div>
+                <div class="form-group full-width btn-container">
+                    <button type="submit" class="btn-primary">Enviar Reporte</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- US-04/06: Alertas + auditoría -->
+        <section id="sec-auditoria" class="modulo-seccion hidden">
+            <div class="section-header">
+                <h2>Monitor de Alertas de Incumplimiento</h2>
+                <p>Registre acciones preventivas o correctivas directamente sobre cada alerta.</p>
+            </div>
+
+            <div class="filtros-barra">
+                <select id="filtro-alerta">
+                    <option value="TODOS">Todas las alertas</option>
+                    <option value="CUMPLE">Cumple (verde)</option>
+                    <option value="ALERTA_AMARILLA">Alerta amarilla</option>
+                    <option value="ALERTA_ROJA">Alerta roja</option>
+                </select>
+                <button id="btn-exportar-reportes" class="btn-fantasma" type="button">Exportar CSV</button>
+            </div>
+
+            <div class="table-container">
+                <table id="tabla-cumplimiento">
+                    <thead>
+                        <tr>
+                            <th>ID Reporte</th>
+                            <th>Empresa</th>
+                            <th>Compromiso vs Real</th>
+                            <th>% Cumplimiento</th>
+                            <th>Alerta</th>
+                            <th>Acción Correctiva</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-alertas-cumplimiento"></tbody>
+                </table>
+            </div>
+
+            <div class="section-header" style="margin-top:2rem;">
+                <h2>Bitácora de Auditoría (US-06)</h2>
+                <p>Historial inmutable: usuario, fecha/hora, acción y justificación.</p>
+            </div>
+            <div class="table-container">
+                <table id="tabla-bitacora">
+                    <thead>
+                        <tr>
+                            <th>Fecha / Hora</th>
+                            <th>Usuario</th>
+                            <th>Solicitud</th>
+                            <th>Acción</th>
+                            <th>Justificación</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-bitacora"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Chat interno con el administrador -->
+        <section id="sec-chat" class="modulo-seccion hidden">
+            <div class="section-header">
+                <h2>Mensajería Directa con Administración</h2>
+                <p>Comunicación en tiempo real (actualización automática cada 4 s).</p>
+            </div>
+            <div class="chat-panel-mensajes">
+                <div class="chat-historial" id="chat-historial-analista"></div>
+                <form class="chat-form-envio" id="chat-form-analista">
+                    <input id="chat-input-analista" autocomplete="off" placeholder="Escriba un mensaje al administrador...">
+                    <button type="submit">Enviar</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <script type="module" src="/src/js/app.js"></script>
+</body>
+</html>

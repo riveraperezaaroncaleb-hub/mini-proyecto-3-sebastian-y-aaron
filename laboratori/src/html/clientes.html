@@ -8,6 +8,7 @@
        <link rel="stylesheet" href="../styles/styles.css">
 </head>
 <body>
+    
 
     <!-- Spinner de carga asíncrona (RF-02) -->
     <div id="loading-spinner" class="spinner-overlay hidden" aria-hidden="true">
@@ -39,15 +40,17 @@
 
     <!-- ENCABEZADO -->
     <header class="navbar">
-        <div class="brand-container">
-            <div class="logo-badge">ZF</div>
-            <h1>ZoFranca CR</h1>
+          <div class="brand-container">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e2/Logo_PROCOMER.png?utm_source=es.wikipedia.org&utm_campaign=index&utm_content=original" alt="Logo PROCOMER" class="logo-procomer">
         </div>
         <nav aria-label="Navegación principal">
             <button class="nav-btn active" data-section="sec-solicitud">Solicitud</button>
             <button class="nav-btn" data-section="sec-analista">Analista</button>
             <button class="nav-btn" data-section="sec-reporte">Cumplimiento</button>
             <button class="nav-btn" data-section="sec-auditoria">Auditoría</button>
+            <button id="btn-lang" type="button">English</button>
+            <button id="btn-theme" type="button">Modo Oscuro</button>
+        </div>
         </nav>
     </header>
 
@@ -243,6 +246,12 @@
         </section>
 
     </main>
+
+    <script>
+       document.getElementById('btn-theme').addEventListener('click', () => {
+         document.body.classList.toggle('dark-mode');
+        });
+    </script>
 
     <script type="module" src="/src/js/app.js"></script>
 </body>

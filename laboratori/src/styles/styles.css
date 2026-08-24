@@ -1,17 +1,22 @@
-/* --- VARIABLES INSPIRADAS EN PROCOMER --- */
+/* --- VARIABLES INSPIRADAS EN PROCOMER (PALETA OFICIAL Y TIPOGRAFÍA) --- */
 :root {
-  --navy-primary: #002B49;
-  --navy-dark: #001A2D;
-  --teal-accent: #00A88F;
-  --teal-hover: #008672;
-  --bg-light: #F4F6F8;
+  --primary-color: #003366;      /* Azul institucional oscuro */
+  --secondary-color: #00A3E0;    /* Azul claro / Turquesa de acento */
+  --accent-color: #0082B3;       /* Azul medio para interacción */
+  --text-dark: #2D3748;          /* Gris oscuro para lectura fácil */
+  --text-muted: #718096;         /* Gris secundario */
+  --bg-light: #F4F7F9;           /* Fondo general claro */
   --card-bg: #FFFFFF;
-  --text-dark: #2C3E50;
-  --text-muted: #6C7A89;
   --border-color: #E2E8F0;
-  --red-alert: #D9534F;
+  --red-alert: #E53E3E;
   --green-ok: #27AE60;
-  --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-main: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Aliases para mantener compatibilidad con el primer CSS */
+  --navy-primary: var(--primary-color);
+  --navy-dark: #002244;
+  --teal-accent: var(--secondary-color);
+  --teal-hover: var(--accent-color);
 }
 
 /* --- ESTILOS GENERALES --- */
@@ -26,6 +31,7 @@ body {
   background-color: var(--bg-light);
   color: var(--text-dark);
   line-height: 1.6;
+  min-height: 100vh;
 }
 
 .hidden {
@@ -34,14 +40,14 @@ body {
 
 /* --- ENCABEZADO INSTITUCIONAL --- */
 .navbar {
-  background-color: var(--navy-primary);
-  color: #FFFFFF;
-  padding: 1rem 5%;
+  background-color: var(--card-bg);
+  color: var(--text-dark);
+  padding: 1rem 3rem;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .brand-container {
@@ -51,8 +57,8 @@ body {
 }
 
 .logo-badge {
-  background-color: var(--teal-accent);
-  color: #FFFFFF;
+  background-color: var(--secondary-color);
+  color: var(--card-bg);
   font-weight: 800;
   padding: 6px 12px;
   border-radius: 4px;
@@ -62,37 +68,38 @@ body {
 .navbar h1 {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--primary-color);
 }
 
 .tagline {
   font-size: 0.9rem;
-  font-weight: 300;
-  color: #B0C4DE;
+  font-weight: 400;
+  color: var(--text-muted);
 }
 
 /* NAVEGACIÓN */
 nav {
   display: flex;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 0;
 }
 
 .nav-btn {
   background: transparent;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
+  font-family: var(--font-main);
   font-size: 0.85rem;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease-in-out;
 }
 
 .nav-btn:hover {
-  background-color: var(--teal-accent);
-  border-color: var(--teal-accent);
+  background-color: var(--primary-color);
+  color: var(--card-bg);
 }
 
 /* --- CONTENEDOR PRINCIPAL --- */
@@ -104,13 +111,14 @@ nav {
 
 .section-header {
   margin-bottom: 1.5rem;
-  border-left: 4px solid var(--teal-accent);
+  border-left: 4px solid var(--secondary-color);
   padding-left: 12px;
 }
 
 .section-header h2 {
-  color: var(--navy-primary);
+  color: var(--primary-color);
   font-size: 1.4rem;
+  font-weight: 700;
 }
 
 .section-header p {
@@ -121,10 +129,11 @@ nav {
 /* --- TARJETAS Y FORMULARIOS --- */
 .card-form {
   background: var(--card-bg);
-  padding: 2rem;
+  padding: 2.5rem 2rem;
   border-radius: 8px;
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
+  border-top: 5px solid var(--secondary-color);
+  box-shadow: 0 10px 25px rgba(0, 51, 102, 0.08);
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.2rem;
@@ -143,21 +152,22 @@ nav {
 label {
   font-weight: 600;
   font-size: 0.85rem;
-  color: var(--navy-primary);
+  color: var(--primary-color);
 }
 
 input, select {
-  padding: 10px 12px;
-  border: 1px solid var(--border-color);
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border-color);
   border-radius: 4px;
+  font-family: var(--font-main);
   font-size: 0.9rem;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease-in-out;
 }
 
 input:focus, select:focus {
-  border-color: var(--teal-accent);
-  box-shadow: 0 0 0 3px rgba(0, 168, 143, 0.15);
+  border-color: var(--secondary-color);
+  box-shadow: none;
 }
 
 .btn-container {
@@ -165,18 +175,20 @@ input:focus, select:focus {
 }
 
 .btn-primary {
-  background-color: var(--teal-accent);
-  color: #FFFFFF;
-  border: none;
-  padding: 12px 24px;
+  background-color: var(--primary-color);
+  color: var(--card-bg);
+  border: 2px solid transparent;
+  padding: 0.75rem 1.75rem;
   border-radius: 4px;
-  font-weight: 700;
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: all 0.2s ease-in-out;
 }
 
 .btn-primary:hover {
-  background-color: var(--teal-hover);
+  background-color: #002244;
 }
 
 /* --- TABLAS ESTILO INSTITUCIONAL --- */
@@ -184,8 +196,9 @@ input:focus, select:focus {
   background: var(--card-bg);
   border-radius: 8px;
   border: 1px solid var(--border-color);
+  border-top: 5px solid var(--primary-color);
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 25px rgba(0, 51, 102, 0.08);
 }
 
 table {
@@ -196,8 +209,8 @@ table {
 }
 
 th {
-  background-color: var(--navy-primary);
-  color: #FFFFFF;
+  background-color: var(--primary-color);
+  color: var(--card-bg);
   padding: 12px 16px;
   font-weight: 600;
 }
@@ -232,20 +245,21 @@ tbody tr:hover {
 .style-error {
   color: var(--red-alert);
   display: none;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   margin-top: 4px;
 }
 
 .spinner-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 26, 45, 0.7);
+  background: rgba(0, 51, 102, 0.4);
+  backdrop-filter: blur(4px);
   display: flex; justify-content: center; align-items: center;
   z-index: 9999;
 }
 
 .spinner p {
-  color: #FFFFFF;
+  color: var(--card-bg);
   font-weight: bold;
 }
 
@@ -256,7 +270,7 @@ tbody tr:hover {
   color: white;
   padding: 12px 24px;
   border-radius: 4px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   z-index: 9999;
 }
 
@@ -267,7 +281,7 @@ tbody tr:hover {
   color: white;
   padding: 12px 24px;
   border-radius: 4px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   z-index: 9999;
 }
 
@@ -293,21 +307,23 @@ tbody tr:hover {
   border: none;
   padding: 6px 12px;
   border-radius: 4px;
+  font-family: var(--font-main);
   font-weight: 600;
   font-size: 0.78rem;
   cursor: pointer;
   color: white;
   margin: 2px;
-  transition: opacity 0.2s ease;
+  transition: all 0.2s ease-in-out;
 }
 
 .btn-mini:hover {
   opacity: 0.85;
+  transform: translateY(-1px);
 }
 
 .btn-aprobar { background-color: var(--green-ok); }
 .btn-rechazar { background-color: var(--red-alert); }
-.btn-reevaluar { background-color: var(--navy-primary); }
+.btn-reevaluar { background-color: var(--primary-color); }
 
 .acciones-cell { white-space: nowrap; }
 
@@ -322,18 +338,20 @@ tbody tr:hover {
 /* --- TARJETA DE RESULTADO PRE-SELECCIÓN IA (RF-04) --- */
 .ia-resultado {
   background: var(--card-bg);
-  border: 1px solid var(--teal-accent);
-  border-left: 6px solid var(--teal-accent);
+  border: 1px solid var(--border-color);
+  border-top: 5px solid var(--secondary-color);
+  border-left: 6px solid var(--secondary-color);
   border-radius: 8px;
   padding: 1.5rem;
   margin-top: 1.5rem;
-  box-shadow: 0 4px 10px rgba(0, 168, 143, 0.12);
+  box-shadow: 0 10px 25px rgba(0, 51, 102, 0.08);
 }
 
 .ia-resultado h3 {
-  color: var(--navy-primary);
+  color: var(--primary-color);
   font-size: 1.05rem;
   margin-bottom: 0.8rem;
+  font-weight: 700;
 }
 
 .ia-grid {
@@ -369,13 +387,20 @@ tbody tr:hover {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.kpi-card:hover {
+  border-color: var(--secondary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 163, 224, 0.15);
 }
 
 .kpi-valor {
   font-size: 1.45rem;
   font-weight: 800;
-  color: var(--navy-primary);
+  color: var(--primary-color);
 }
 
 .kpi-etiqueta {
@@ -398,23 +423,27 @@ tbody tr:hover {
 }
 
 .filtros-barra input { flex: 1; min-width: 180px; }
-.filtros-barra input, .filtros-barra select { padding: 8px 10px; font-size: 0.85rem; }
+.filtros-barra input, .filtros-barra select { 
+  padding: 0.6rem 0.8rem; 
+  font-size: 0.85rem; 
+}
 
 .btn-fantasma {
   background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  color: var(--text-dark);
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
   padding: 8px 14px;
   border-radius: 4px;
   cursor: pointer;
+  font-family: var(--font-main);
   font-size: 0.82rem;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease-in-out;
 }
 
 .btn-fantasma:hover:not(:disabled) {
-  border-color: var(--teal-accent);
-  color: var(--teal-accent);
+  background-color: var(--primary-color);
+  color: var(--card-bg);
 }
 
 .btn-fantasma:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -436,25 +465,30 @@ tbody tr:hover {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 26, 45, 0.55);
+  background-color: rgba(0, 51, 102, 0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
   padding: 16px;
+  transition: all 0.3s ease-in-out;
 }
 
 .modal-caja {
   background: var(--card-bg);
   border-radius: 8px;
   width: min(500px, 94vw);
-  padding: 1.5rem;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  padding: 2.5rem 2rem;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  border-top: 5px solid var(--primary-color);
+  position: relative;
 }
 
 .modal-caja h3 {
-  color: var(--navy-primary);
-  font-size: 1.05rem;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+  font-weight: 700;
   margin-bottom: 0.5rem;
 }
 
@@ -466,6 +500,15 @@ tbody tr:hover {
   min-height: 90px;
   resize: vertical;
   font-family: var(--font-main);
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.75rem;
+  outline: none;
+  transition: border-color 0.2s ease-in-out;
+}
+
+#modal-input:focus {
+  border-color: var(--secondary-color);
 }
 
 .char-counter {
@@ -478,22 +521,25 @@ tbody tr:hover {
 .modal-acciones {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 0.75rem;
   margin-top: 1.25rem;
 }
 
 .btn-secondary {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  color: var(--text-dark);
-  padding: 10px 18px;
+  background-color: var(--secondary-color);
+  color: var(--card-bg);
+  border: 2px solid transparent;
+  padding: 0.6rem 1rem;
   border-radius: 4px;
   cursor: pointer;
+  font-family: var(--font-main);
   font-weight: 600;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease-in-out;
 }
 
-.btn-secondary:hover { border-color: var(--text-muted); }
+.btn-secondary:hover { 
+  background-color: var(--accent-color); 
+}
 
 /* --- TIMELINE DE HISTORIAL (RF-14) --- */
 .timeline {
@@ -520,26 +566,54 @@ tbody tr:hover {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--teal-accent);
+  background: var(--secondary-color);
 }
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
   .kpi-strip { grid-template-columns: repeat(2, 1fr); }
-}
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
+  
   .navbar {
+    padding: 1rem;
     flex-direction: column;
     align-items: flex-start;
   }
   
   .card-form {
     grid-template-columns: 1fr;
+    padding: 2rem 1.5rem;
   }
   
   .table-container {
     overflow-x: auto;
   }
+}
+
+.logo-procomer {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Estilos para los botones de idioma y tema */
+#btn-lang, #btn-theme {
+  padding: 8px 16px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  background-color: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+#btn-lang:hover, #btn-theme:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+#btn-lang:active, #btn-theme:active {
+  transform: translateY(0);
 }

@@ -1,84 +1,179 @@
-<html lang="es">
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de Administración - Proponer</title>
-  <link rel="stylesheet" href="../styles/admins.css">
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Panel del Administrador General · PROCOMER</title>
+  <link rel="stylesheet" href="/src/styles/styles.css">
+  <link rel="stylesheet" href="/src/styles/admins.css">
+  <link rel="stylesheet" href="/src/styles/global.css">
+  <script>
+    (function(){
+      var t = localStorage.getItem('zf_tema') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
 </head>
 <body>
 
+  <div id="loading-spinner" class="spinner-overlay hidden"><div class="spinner"><p id="spinner-text">Cargando...</p></div></div>
+  <div id="toast-error" class="toast-error hidden" role="alert"><span id="toast-message"></span></div>
+
   <div class="admin-layout">
-    
-    <!-- Barra Lateral (Sidebar) -->
+
+    <!-- Barra Lateral -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e2/Logo_PROCOMER.png?utm_source=es.wikipedia.org&utm_campaign=index&utm_content=original" alt="Logo Proponer Admin" class="sidebar-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e2/Logo_PROCOMER.png" alt="Logo PROCOMER" class="sidebar-logo">
       </div>
-
-      <!-- Menú de Navegación -->
       <nav class="sidebar-nav">
         <ul>
           <li class="active">
-            <a href="#">
-              <span class="icon">📊</span>
-              <span class="text">Panel Principal</span>
-            </a>
+            <a href="#" data-tab="tab-dashboard"><span class="icon">📊</span><span class="text">Control Global</span></a>
           </li>
-          <!-- Aquí agregaremos los nuevos apartados más adelante -->
+          <li>
+            <a href="#" data-tab="tab-analistas"><span class="icon">👥</span><span class="text">Ver Analistas</span></a>
+          </li>
+          <li>
+            <a href="#" data-tab="tab-auditoria"><span class="icon">🧾</span><span class="text">Auditoría de Decisiones</span></a>
+          </li>
+          <li>
+            <a href="#" data-tab="tab-chat"><span class="icon">💬</span><span class="text">Mensajería Directa</span></a>
+          </li>
         </ul>
       </nav>
-
-      <!-- Pie de Barra Lateral / Salir -->
       <div class="sidebar-footer">
-        <a href="index.html" class="logout-link">
-          <span class="icon">🚪</span>
-          <span class="text">Cerrar Sesión</span>
-        </a>
+        <a href="/" class="logout-link"><span class="icon">🚪</span><span class="text">Cerrar Sesión</span></a>
       </div>
     </aside>
 
-    <!-- Contenido Principal -->
     <div class="main-wrapper">
-      
-      <!-- Encabezado Superior (Topbar) -->
+
       <header class="topbar">
-        <button class="toggle-btn" onclick="toggleSidebar()" aria-label="Alternar menú">
-          ☰
-        </button>
-        <div class="user-profile">
-          <span class="user-role">Administrador</span>
-          <div class="avatar">A</div>
+        <button class="toggle-btn" onclick="document.getElementById('sidebar').classList.toggle('collapsed')" aria-label="Alternar menú">☰</button>
+        <div style="display:flex;gap:10px;align-items:center;" class="controles-globales">
+          <select class="idioma-select" data-idioma-selector aria-label="Idioma"></select>
+          <button class="tema-btn" data-tema-toggle aria-label="Alternar tema">🌙</button>
+          <div class="user-profile">
+            <span class="user-role">Administrador General</span>
+            <div class="avatar">A</div>
+          </div>
         </div>
       </header>
 
-      <!-- Área de Contenido Dinámico -->
       <main class="content-area">
-        <div class="page-header">
-          <h1>Panel de Control</h1>
-          <p class="subtitle">Bienvenido al sistema de gestión de Proponer.</p>
-        </div>
 
-        <!-- Contenedor vacío donde iremos agregando los módulos y herramientas -->
-        <div class="dashboard-placeholder">
-          <div class="placeholder-card">
-            <span class="placeholder-icon">⚙️</span>
-            <h3>Área de Trabajo Lista</h3>
-            <p>Selecciona un apartado del menú lateral o agrega nuevos módulos de administración.</p>
+        <!-- TAB: Control Global (US-05) -->
+        <section id="tab-dashboard" class="content-section">
+          <div class="page-header">
+            <h1>Dashboard de Métricas Operativas y Estratégicas</h1>
+            <p class="subtitle">KPIs del proceso de admisión con filtros interactivos.</p>
           </div>
-        </div>
+
+          <div class="filtros-barra">
+            <label style="font-size:.8rem;">Desde: <input type="date" id="filtro-desde"></label>
+            <label style="font-size:.8rem;">Hasta: <input type="date" id="filtro-hasta"></label>
+            <select id="filtro-sector-dash">
+              <option value="TODOS">Todos los sectores</option>
+              <option value="Tecnología">Tecnología</option>
+              <option value="Ciencias de la Vida">Ciencias de la Vida</option>
+              <option value="Manufactura Avanzada">Manufactura Avanzada</option>
+              <option value="Servicios">Servicios</option>
+              <option value="Logística">Logística</option>
+            </select>
+            <select id="filtro-analista-dash">
+              <option value="TODOS">Todos los analistas</option>
+            </select>
+            <button class="btn-fantasma" id="btn-pdf-reporte">Exportar PDF</button>
+            <button class="btn-fantasma" id="btn-xlsx-reporte">Exportar Excel</button>
+          </div>
+
+          <div class="kpi-strip">
+            <div class="kpi-card"><span class="kpi-valor" id="dk-recibidas">-</span><span class="kpi-etiqueta">Solicitudes recibidas</span></div>
+            <div class="kpi-card"><span class="kpi-valor" id="dk-tiempo">-</span><span class="kpi-etiqueta">Tiempo prom. procesamiento</span></div>
+            <div class="kpi-card"><span class="kpi-valor" id="dk-aprobacion">-</span><span class="kpi-etiqueta">Tasa de aprobación</span></div>
+            <div class="kpi-card"><span class="kpi-valor" id="dk-inversion">-</span><span class="kpi-etiqueta">Inversión comprometida</span></div>
+            <div class="kpi-card kpi-alerta"><span class="kpi-valor" id="dk-alertas">-</span><span class="kpi-etiqueta">Alertas rojas activas</span></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+            <div class="table-container" style="padding:14px;">
+              <h3 style="margin-bottom:8px;font-size:.95rem;">Embudo de Conversión</h3>
+              <canvas id="chart-funnel" height="220"></canvas>
+            </div>
+            <div class="table-container" style="padding:14px;">
+              <h3 style="margin-bottom:8px;font-size:.95rem;">Solicitudes por Sector</h3>
+              <canvas id="chart-sectores" height="220"></canvas>
+            </div>
+            <div class="table-container" style="padding:14px;">
+              <h3 style="margin-bottom:8px;font-size:.95rem;">Decisiones por Analista</h3>
+              <canvas id="chart-analistas" height="220"></canvas>
+            </div>
+            <div class="table-container" style="padding:14px;">
+              <h3 style="margin-bottom:8px;font-size:.95rem;">Afinidad IA Promedio por Sector (%)</h3>
+              <canvas id="chart-afinidad" height="220"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: Ver Analistas -->
+        <section id="tab-analistas" class="content-section" hidden>
+          <div class="page-header">
+            <h1>Ver Analistas</h1>
+            <p class="subtitle">Personal de análisis: datos de contacto y estado de cuenta.</p>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Especialidad</th><th>Estado de Cuenta</th><th>Decisiones Emitidas</th></tr>
+              </thead>
+              <tbody id="tbody-analistas"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TAB: Auditoría de Decisiones (US-06) -->
+        <section id="tab-auditoria" class="content-section" hidden>
+          <div class="page-header">
+            <h1>Auditoría de Decisiones</h1>
+            <p class="subtitle">Registro inmutable con justificación y timestamp · formato PROCOMER.</p>
+          </div>
+          <div class="filtros-barra">
+            <input type="text" id="filtro-auditoria-texto" placeholder="Filtrar por solicitud o usuario...">
+            <button class="btn-fantasma" id="btn-exportar-auditoria">Exportar Trazabilidad</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th>Timestamp</th><th>Usuario</th><th>Solicitud</th><th>Acción</th><th>Justificación</th></tr>
+              </thead>
+              <tbody id="tbody-auditoria"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TAB: Mensajería Directa -->
+        <section id="tab-chat" class="content-section" hidden>
+          <div class="page-header">
+            <h1>Mensajería Directa</h1>
+            <p class="subtitle">Chat interno en tiempo real entre administración y analistas.</p>
+          </div>
+          <div class="chat-layout">
+            <div class="chat-lista" id="chat-contactos"></div>
+            <div class="chat-panel-mensajes">
+              <div class="chat-historial" id="chat-historial-admin"></div>
+              <form class="chat-form-envio" id="chat-form-admin">
+                <input id="chat-input-admin" autocomplete="off" placeholder="Escriba un mensaje...">
+                <button type="submit">Enviar</button>
+              </form>
+            </div>
+          </div>
+        </section>
+
       </main>
-
     </div>
-
   </div>
 
-  <script>
-    // Permite contraer/expandir la barra lateral en pantallas pequeñas
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('collapsed');
-    }
-  </script>
+  <script type="module" src="/src/js/admin.js"></script>
 </body>
 </html>

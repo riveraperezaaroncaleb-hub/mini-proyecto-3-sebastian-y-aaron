@@ -137,3 +137,56 @@ export function descargarCSV(nombreArchivo, filas) {
   URL.revokeObjectURL(url);
   mostrarToast(`${nombreArchivo} exportado (${filas.length} registros).`, "success");
 }
+
+// ---------- Carga diferida de librerías CDN ----------
+function cargarScript(src) {
+  return new Promise((res, rej) => {
+    if (document.querySelector(`script[src="${src}"]`)) return res();
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = res;
+    s.onerror = () => rej(new Error(`No se pudo cargar ${src}`));
+    document.head.appendChild(s);
+  });
+}
+
+// US-05 / Panel Analista: exportación real .xlsx vía SheetJS
+export async function descargarXLSX(nombreArchivo, filas, hoja = "Datos") {
+  if (!filas?.length) return mostrarToast("No hay datos para exportar.");
+  try {
+    await cargarScript("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js");
+    const ws = window.XLSX.utils.json_to_sheet(filas);
+    const wb = window.XLSX.utils.book_new();
+    window.XLSX.utils.book_append_sheet(wb, ws, hoja);
+    window.XLSX.writeFile(wb, nombreArchivo);
+    mostrarToast(`${nombreArchivo} generado (${filas.length} registros).`, "success");
+  } catch {
+    mostrarToast("Error generando Excel; se exporta CSV como alternativa.");
+    descargarCSV(nombreArchivo.replace(/\.xlsx$/i, ".csv"), filas);
+  }
+}
+
+// US-05: reporte PDF vía jsPDF + AutoTable
+export async function descargarPDF(nombreArchivo, titulo, filas, columnas = null) {
+  if (!filas?.length) return mostrarToast("No hay datos para exportar.");
+  try {
+    await cargarScript("https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js");
+    await cargarScript("https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js");
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "landscape" });
+    const cols = columnas ?? Object.keys(filas[0]).map((k) => ({ header: k, dataKey: k }));
+    doc.setFontSize(14);
+    doc.text(titulo, 14, 15);
+    doc.setFontSize(9);
+    doc.text(`Generado: ${new Date().toLocaleString()} · PROCOMER Zona Franca`, 14, 21);
+    doc.autoTable({ columns: cols, body: filas, startY: 25, styles: { fontSize: 8 } });
+    doc.save(nombreArchivo);
+    mostrarToast(`${nombreArchivo} generado.`, "success");
+  } catch {
+    mostrarToast("No se pudo generar el PDF (verifique conexión a internet).");
+  }
+}
+
+export function cargarChartJS() {
+  return cargarScript("https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js");
+}

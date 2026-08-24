@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../styles/login.css">
   <link rel="stylesheet" href="../styles/global.css">
   <script>
+    // Aplicar tema guardado antes de renderizar (evita flash)
     (function(){
       var t = localStorage.getItem('zf_tema') || 'light';
       document.documentElement.setAttribute('data-theme', t);
@@ -63,13 +64,14 @@
   </main>
 
   <script>
-  // Inicializar tema
+  // Inicializar tema desde localStorage
   (function(){
     var guardado = localStorage.getItem('zf_tema') || 'light';
     document.documentElement.setAttribute('data-theme', guardado);
     var btn = document.getElementById('btn-tema-login');
     if(btn) btn.textContent = guardado === 'dark' ? '☀️' : '🌙';
   })();
+
   document.addEventListener('DOMContentLoaded', function(){
     var btn = document.getElementById('btn-tema-login');
     if(btn){
@@ -81,7 +83,8 @@
       });
     }
   });
-
+  </script>
+  <script>
   // Control del modal "Trabaja con nosotros"
   function openLoginModal() {
     const modal = document.getElementById('loginModal');

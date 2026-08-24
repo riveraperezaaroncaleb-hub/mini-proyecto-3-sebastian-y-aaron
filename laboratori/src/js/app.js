@@ -1,13 +1,14 @@
+// Panel del Analista de Aceptaciones (US-02, US-03, US-04 + chat interno)
 import {
   cargarDatosDashboard,
-  guardarSolicitud,
   aplicarDictamenHumano,
-  actualizarEvaluacionIA,
   guardarReporteCumplimiento,
-  cargarBitacora
+  cargarBitacora,
+  registrarAccionCorrectiva,
+  cargarMensajes,
+  enviarMensaje
 } from "./apiService.js";
-import { evaluarSolicitudConIA } from "./iaService.js";
-import { validarArchivoAdjunto, validarFormularioSolicitud } from "./validaciones.js";
+import { initComponentsGlobales } from "./global.js";
 import {
   escapeHtml,
   formatearUSD,
@@ -16,10 +17,12 @@ import {
   mostrarSpinner,
   ocultarSpinner,
   abrirModal,
-  descargarCSV
+  descargarCSV,
+  descargarXLSX
 } from "./ui.js";
 
-const ANALISTA_ACTUAL = "analista@zofranca.cr";
+const $ = (id) => document.getElementById(id);
+const USUARIO = sessionStorage.getItem("zf_usuario") || "analista@zofranca.cr";
 const PAGE_SIZE = 5;
 
 let solicitudes = [];
@@ -29,14 +32,20 @@ let reportesCalculados = [];
 let paginaActual = 1;
 let filtroTexto = "";
 let filtroEstado = "TODOS";
+let filtroClasificacion = "TODAS";
+let ordenAfinidad = "desc";
 let filtroAlerta = "TODOS";
 
-const setTxt = (id, valor) => {
-  const el = document.getElementById(id);
-  if (el) el.textContent = valor;
-};
+initComponentsGlobales();
 
-// ---------- RF-16: carga en paralelo ----------
+const setTxt = (id, valor) => { const el = $(id); if (el) el.textContent = valor; };
+
+// ---------- Protección de acceso ----------
+if (sessionStorage.getItem("zf_rol") !== "analista") {
+  mostrarToast("Acceso restringido: inicie sesión como analista.");
+}
+
+// ---------- Carga paralela ----------
 async function refrescarDatos() {
   mostrarSpinner("Cargando datos del servidor...");
   try {
@@ -55,7 +64,7 @@ async function refrescarDatos() {
   }
 }
 
-// ---------- KPIs del dashboard ----------
+// ---------- KPIs ----------
 function renderKPIs() {
   const pendientes = solicitudes.filter((s) => s.estado === "PENDIENTE_EVALUACION").length;
   const aprobadas = solicitudes.filter((s) => s.estado === "APROBADA").length;
@@ -63,27 +72,24 @@ function renderKPIs() {
   const promedioIA = conIA.length
     ? Math.round(conIA.reduce((acc, s) => acc + s.evaluacionIA.puntajeAfinidad, 0) / conIA.length)
     : 0;
-  const alertasRojas = reportesCalculadosFrescos().filter(
-    (x) => x.calc.estadoAlerta === "ALERTA_ROJA"
-  ).length;
+  const alertasRojas = reportesCalculadosFrescos().filter((x) => x.calc.estadoAlerta === "ALERTA_ROJA").length;
 
   setTxt("kpi-total", solicitudes.length);
   setTxt("kpi-pendientes", pendientes);
   setTxt("kpi-aprobadas", aprobadas);
   setTxt("kpi-ia-promedio", `${promedioIA}/100`);
   setTxt("kpi-alertas", alertasRojas);
+
+  const badge = $("badge-alertas");
+  badge.textContent = alertasRojas;
+  badge.classList.toggle("hidden", alertasRojas === 0);
 }
 
 function calcularCumplimiento(reporte) {
-  const pctInversion = reporte.inversionComprometida
-    ? (reporte.inversionEjecutada / reporte.inversionComprometida) * 100
-    : null;
-  const pctEmpleos = reporte.empleosComprometidos
-    ? (reporte.empleosReales / reporte.empleosComprometidos) * 100
-    : null;
+  const pctInversion = reporte.inversionComprometida ? (reporte.inversionEjecutada / reporte.inversionComprometida) * 100 : null;
+  const pctEmpleos = reporte.empleosComprometidos ? (reporte.empleosReales / reporte.empleosComprometidos) * 100 : null;
   const valores = [pctInversion, pctEmpleos].filter((v) => v !== null);
   const promedio = valores.length ? valores.reduce((a, b) => a + b, 0) / valores.length : null;
-
   let estadoAlerta = "SIN_DATOS";
   if (promedio !== null) {
     if (promedio >= 90) estadoAlerta = "CUMPLE";
@@ -97,108 +103,39 @@ function reportesCalculadosFrescos() {
   return reportes.map((r) => ({ rep: r, calc: calcularCumplimiento(r) }));
 }
 
-// ---------- HU-01: envío de solicitud ----------
-async function manejarEnvioSolicitud(event) {
-  event.preventDefault();
-
-  const archivoInput = document.getElementById("documentosAdjuntos");
-  const errorFile = document.getElementById("error-file");
-  const archivo = archivoInput.files[0] || null;
-
-  const campos = {
-    empresaNombre: document.getElementById("empresaNombre").value.trim(),
-    sector: document.getElementById("sectorEmpresa").value,
-    inversionProyectada: document.getElementById("inversionProyectada").value,
-    empleosDirectosProyectados: document.getElementById("empleosProyectados").value
+// ---------- Bandeja del analista (US-02/US-03) ----------
+function etiquetaClasificacion(clasificacion) {
+  const mapa = {
+    PRE_CLASIFICADA: '<span class="badge-ok">Pre-clasificada</span>',
+    REQUIERE_REVISION: '<span class="badge-warning">Requiere revisión manual</span>',
+    INCOMPLETA: '<span class="badge-alerta">Incompleta</span>'
   };
-
-  const validacionForm = validarFormularioSolicitud(campos);
-  if (!validacionForm.valido) {
-    mostrarToast(validacionForm.errores[0]);
-    return;
-  }
-
-  // RF-02: validación estricta de archivo adjunto (PDF, máx 10MB)
-  const validacionArchivo = validarArchivoAdjunto(archivo);
-  if (!validacionArchivo.valido) {
-    errorFile.textContent = validacionArchivo.mensaje;
-    errorFile.style.display = "block";
-    mostrarToast(validacionArchivo.mensaje);
-    return;
-  }
-  errorFile.style.display = "none";
-
-  const solicitudData = {
-    id: generarIdEmpresa(),
-    empresaNombre: campos.empresaNombre,
-    sector: campos.sector,
-    inversionProyectada: Number(campos.inversionProyectada),
-    empleosDirectosProyectados: Number(campos.empleosDirectosProyectados)
-  };
-
-  mostrarSpinner("Validando datos del formulario...");
-  try {
-    // RF-04/RF-06: pre-clasificación IA con timeout de 5s y fallback local
-    mostrarSpinner(`Pre-clasificación IA en curso para ${solicitudData.empresaNombre} (máx 5s)...`);
-    const evaluacionIA = await evaluarSolicitudConIA(solicitudData);
-
-    mostrarSpinner("Guardando solicitud en el servidor...");
-    await guardarSolicitud(solicitudData, evaluacionIA, archivo);
-
-    ocultarSpinner();
-    renderResultadoIA(solicitudData, evaluacionIA);
-
-    const origen = evaluacionIA.esFallback ? " (vía Fallback local)" : "";
-    mostrarToast(
-      `Solicitud ${solicitudData.id} registrada. IA: ${evaluacionIA.nivelRecomendacion} (${evaluacionIA.puntajeAfinidad} pts)${origen}.`,
-      "success"
-    );
-    event.target.reset();
-    await refrescarDatos();
-  } catch (error) {
-    console.error(error);
-    ocultarSpinner();
-    mostrarToast(error.message || "Error al registrar la solicitud.");
-  }
+  return mapa[clasificacion] || '<span class="badge-neutral">SIN CLASIFICAR</span>';
 }
 
-function generarIdEmpresa() {
-  let id;
-  do {
-    id = "EMP-" + String(Date.now()).slice(-6);
-  } while (solicitudes.some((s) => s.id === id));
-  return id;
-}
-
-// ---------- Visualización de la pre-selección IA (RF-04/RF-05) ----------
-function renderResultadoIA(solicitud, ia) {
-  const card = document.getElementById("resultado-ia");
-  if (!card) return;
-
-  setTxt("ia-id", `${solicitud.id} - ${solicitud.empresaNombre}`);
-  setTxt("ia-puntaje", `${ia.puntajeAfinidad} / 100 pts`);
-  document.getElementById("ia-nivel").innerHTML = badgeEstado(ia.nivelRecomendacion);
-  document.getElementById("ia-motor").innerHTML = ia.esFallback
-    ? '<span class="badge-warning">FALLBACK LOCAL</span> (la IA no respondió en 5s; algoritmo de contingencia)'
-    : '<span class="badge-ok">MOTOR IA</span> (respuesta oportuna)';
-  setTxt("ia-justificacion", ia.justificacion);
-  setTxt("ia-fecha", new Date(ia.fechaEvaluacion).toLocaleString());
-
-  card.classList.remove("hidden");
-  card.scrollIntoView({ behavior: "smooth", block: "nearest" });
-}
-
-// ---------- HU-02/HU-03: panel analista (filtros + paginación) ----------
 function solicitudesFiltradas() {
   const q = filtroTexto.trim().toLowerCase();
-  return solicitudes.filter((s) => {
+  let lista = solicitudes.filter((s) => {
     const coincideTexto =
       !q ||
       String(s.empresaNombre || "").toLowerCase().includes(q) ||
-      String(s.id || "").toLowerCase().includes(q);
+      String(s.id || "").toLowerCase().includes(q) ||
+      String(s.cedulaJuridica || "").toLowerCase().includes(q);
     const coincideEstado = filtroEstado === "TODOS" || s.estado === filtroEstado;
-    return coincideTexto && coincideEstado;
+    const coincideClasificacion =
+      filtroClasificacion === "TODAS" ||
+      (s.clasificacion || "PRE_CLASIFICADA") === filtroClasificacion;
+    return coincideTexto && coincideEstado && coincideClasificacion;
   });
+
+  lista.sort((a, b) => {
+    if (ordenAfinidad === "fecha")
+      return new Date(b.fechaCreacion) - new Date(a.fechaCreacion);
+    const pa = a.evaluacionIA?.puntajeAfinidad ?? -1;
+    const pb = b.evaluacionIA?.puntajeAfinidad ?? -1;
+    return ordenAfinidad === "desc" ? pb - pa : pa - pb;
+  });
+  return lista;
 }
 
 function renderPanelAnalista() {
@@ -207,12 +144,10 @@ function renderPanelAnalista() {
   if (paginaActual > totalPaginas) paginaActual = totalPaginas;
   const pagina = filtradas.slice((paginaActual - 1) * PAGE_SIZE, paginaActual * PAGE_SIZE);
 
-  const tbody = document.getElementById("container-solicitudes-pendientes");
+  const tbody = $("container-solicitudes-pendientes");
   tbody.innerHTML = "";
-
-  if (pagina.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7">Sin resultados para los filtros aplicados.</td></tr>';
-  }
+  if (pagina.length === 0)
+    tbody.innerHTML = '<tr><td colspan="8">Sin resultados para los filtros aplicados.</td></tr>';
 
   pagina.forEach((sol) => {
     const ia = sol.evaluacionIA || {};
@@ -220,62 +155,94 @@ function renderPanelAnalista() {
 
     const acciones =
       sol.estado === "PENDIENTE_EVALUACION"
-        ? `<button class="btn-mini btn-aprobar" data-id="${sol.id}" data-accion="APROBADA">Aprobar</button>
+        ? `<button class="btn-mini btn-aprobar" data-id="${sol.id}" data-accion="APROBADA">Aceptar</button>
            <button class="btn-mini btn-rechazar" data-id="${sol.id}" data-accion="RECHAZADA">Rechazar</button>
-           <button class="btn-mini btn-reevaluar" data-id="${sol.id}" title="Re-evaluar con IA">IA</button>
-           <button class="btn-mini btn-historial" data-id="${sol.id}" title="Ver historial">Historial</button>`
-        : `<button class="btn-mini btn-historial" data-id="${sol.id}" title="Ver historial">Historial</button>`;
+           <button class="btn-mini btn-historial" data-id="${sol.id}" title="Historial de evaluaciones">Historial</button>`
+        : `<button class="btn-mini btn-historial" data-id="${sol.id}" title="Historial de evaluaciones">Historial</button>`;
 
     fila.innerHTML = `
       <td>${escapeHtml(sol.id)}</td>
-      <td>${escapeHtml(sol.empresaNombre)}<br><small class="text-muted">${escapeHtml(sol.sector || "")}</small></td>
-      <td>${formatearUSD(sol.inversionProyectada)}</td>
-      <td>${escapeHtml(sol.empleosDirectosProyectados ?? "-")}</td>
       <td>
-        ${badgeEstado(ia.nivelRecomendacion || "SIN_EVALUAR")}
-        <strong>${escapeHtml(ia.puntajeAfinidad ?? "-")} pts</strong>
-        ${ia.esFallback ? '<br><small class="ia-fallback">Fallback local</small>' : ""}
-        <br><small class="text-muted">${escapeHtml(ia.justificacion || "")}</small>
+        <a href="#" class="link-expediente" data-id="${sol.id}" style="color:var(--teal-accent);font-weight:600;">
+          ${escapeHtml(sol.empresaNombre)}
+        </a>
+        <br><small class="text-muted">${escapeHtml(sol.sector || "")} · ${escapeHtml(sol.cedulaJuridica || "s/cédula")}</small>
       </td>
+      <td>${formatearUSD(sol.inversionProyectada)}</td>
+      <td>${escapeHtml(sol.empleosDirectosProyectados ?? "-")}<br><small class="text-muted">+${escapeHtml(sol.empleosIndirectosProyectados ?? 0)} ind.</small></td>
+      <td>
+        <strong style="font-size:1.05rem;">${escapeHtml(ia.puntajeAfinidad ?? "-")}%</strong><br>
+        ${badgeEstado(ia.nivelRecomendacion || "SIN_EVALUAR")}
+        <br><small class="text-muted">${escapeHtml((ia.justificacion || "").slice(0, 90))}${(ia.justificacion || "").length > 90 ? "…" : ""}</small>
+      </td>
+      <td>${etiquetaClasificacion(sol.clasificacion)}</td>
       <td>${badgeEstado(sol.estado)}</td>
       <td class="acciones-cell">${acciones}</td>
     `;
     tbody.appendChild(fila);
   });
 
-  setTxt(
-    "paginacion-info",
-    `Página ${paginaActual} de ${totalPaginas} · ${filtradas.length} registro(s)`
-  );
-  document.getElementById("btn-prev").disabled = paginaActual <= 1;
-  document.getElementById("btn-next").disabled = paginaActual >= totalPaginas;
+  setTxt("paginacion-info", `Página ${paginaActual} de ${totalPaginas} · ${filtradas.length} registro(s)`);
+  $("btn-prev").disabled = paginaActual <= 1;
+  $("btn-next").disabled = paginaActual >= totalPaginas;
 }
 
+// ---------- Expediente completo (US-03: desglose explicativo) ----------
+function verExpediente(id) {
+  const s = solicitudes.find((x) => x.id === id);
+  if (!s) return;
+  const ia = s.evaluacionIA || {};
+  const desglose = (ia.desglose || [])
+    .map(
+      (d) => `<li>${d.cumple ? "✅" : "❌"} ${escapeHtml(d.criterio)} — peso ${d.peso}%</li>`
+    )
+    .join("");
+
+  const html = `
+    <table style="width:100%;font-size:.85rem;">
+      <tr><td><strong>Cédula Jurídica</strong></td><td>${escapeHtml(s.cedulaJuridica || "-")}</td></tr>
+      <tr><td><strong>Teléfono</strong></td><td>${escapeHtml(s.telefono || "-")}</td></tr>
+      <tr><td><strong>Sector</strong></td><td>${escapeHtml(s.sector || "-")}</td></tr>
+      <tr><td><strong>Inversión</strong></td><td>${formatearUSD(s.inversionProyectada)}</td></tr>
+      <tr><td><strong>Empleos</strong></td><td>${escapeHtml(s.empleosDirectosProyectados ?? "-")} directos + ${escapeHtml(s.empleosIndirectosProyectados ?? 0)} indirectos</td></tr>
+      <tr><td><strong>Documento</strong></td><td>${escapeHtml(s.archivoAdjunto || "-")} (${s.tamanoArchivoMB ?? 0} MB)</td></tr>
+    </table>
+    <p style="margin-top:10px;"><strong>Pitch:</strong><br><em>"${escapeHtml(s.pitch || "Sin pitch presentado.")}"</em></p>
+    <p style="margin-top:10px;"><strong>Afinidad IA: ${ia.puntajeAfinidad ?? "-"}%</strong> ${badgeEstado(ia.nivelRecomendacion || "")}</p>
+    ${desglose ? `<ul class="timeline" style="margin-bottom:4px;">${desglose}</ul>` : ""}
+    <p class="text-muted">${escapeHtml(ia.justificacion || "")}</p>`;
+  return abrirModal({ titulo: `Expediente — ${s.id} · ${s.empresaNombre}`, contenidoHTML: html, modoInfo: true });
+}
+
+// ---------- Dictamen con justificación obligatoria ----------
 async function manejarAccionesAnalista(event) {
+  const link = event.target.closest(".link-expediente");
+  if (link) return verExpediente(link.dataset.id);
+
   const btnHistorial = event.target.closest(".btn-historial");
   if (btnHistorial) return verHistorial(btnHistorial.dataset.id);
-
-  const btnReevaluar = event.target.closest(".btn-reevaluar");
-  if (btnReevaluar) return reevaluarConIA(btnReevaluar.dataset.id);
 
   const btn = event.target.closest(".btn-mini[data-accion]");
   if (!btn) return;
 
   const { id, accion } = btn.dataset;
-  // Modal propio (reemplaza prompt nativo) con límite de caracteres
   const observaciones = await abrirModal({
     titulo: `Dictamen ${accion} — ${id}`,
-    mensaje: "Confirme el dictamen. Las observaciones quedan registradas en la bitácora (RF-14):",
+    mensaje:
+      accion === "APROBADA"
+        ? "La justificación se enviará al buzón de la empresa y sus datos se exportarán automáticamente a Excel:"
+        : "La justificación se enviará al buzón de la empresa solicitante:",
     entrada: true,
     textoAceptar: `Confirmar ${accion}`
   });
   if (observaciones === null) return;
+  if (!observaciones.trim()) return mostrarToast("La justificación es obligatoria.");
 
   mostrarSpinner(`Aplicando dictamen ${accion} a ${id}...`);
   try {
-    // RF-09: dictamen humano + RF-14: trazabilidad
-    await aplicarDictamenHumano(id, accion, ANALISTA_ACTUAL, observaciones.trim());
-    mostrarToast(`Dictamen ${accion} aplicado a ${id} y registrado en bitácora.`, "success");
+    await aplicarDictamenHumano(id, accion, USUARIO, observaciones.trim());
+    if (accion === "APROBADA") await exportarAceptadasXLSX([solicitudes.find((s) => s.id === id)]);
+    mostrarToast(`Dictamen ${accion} aplicado a ${id}, notificado a la empresa y registrado en bitácora.`, "success");
     await refrescarDatos();
   } catch (error) {
     console.error(error);
@@ -285,69 +252,46 @@ async function manejarAccionesAnalista(event) {
   }
 }
 
-// Re-evaluación automática con el motor IA (RF-04/RF-06)
-async function reevaluarConIA(id) {
-  const solicitud = solicitudes.find((s) => s.id === id);
-  if (!solicitud) return;
-
-  mostrarSpinner(`Re-evaluando ${id} con el motor IA (máx 5s)...`);
-  try {
-    const evaluacionIA = await evaluarSolicitudConIA(solicitud);
-    await actualizarEvaluacionIA(id, evaluacionIA);
-    ocultarSpinner();
-    renderResultadoIA(solicitud, evaluacionIA);
-    mostrarToast(
-      `${id}: IA sugiere ${evaluacionIA.nivelRecomendacion} (${evaluacionIA.puntajeAfinidad} pts)${evaluacionIA.esFallback ? " [Fallback local]" : ""}.`,
-      "success"
-    );
-    await refrescarDatos();
-  } catch (error) {
-    console.error(error);
-    mostrarToast(error.message || "Error en la re-evaluación IA.");
-  } finally {
-    ocultarSpinner();
-  }
+// Exportación automática .xlsx de empresas aceptadas
+async function exportarAceptadasXLSX(lista) {
+  const filas = (lista || solicitudes.filter((s) => s.estado === "APROBADA")).map((s) => ({
+    Nombre: s.empresaNombre,
+    Cedula: s.cedulaJuridica || "",
+    Sector: s.sector,
+    InversionUSD: s.inversionProyectada,
+    Empleos: s.empleosDirectosProyectados,
+    FechaAprobacion: s.fechaAprobacion ? new Date(s.fechaAprobacion).toLocaleDateString() : ""
+  }));
+  if (filas.length) await descargarXLSX("empresas_aceptadas_zofranca.xlsx", filas, "Empresas Aceptadas");
 }
 
-// Historial por solicitud (RF-14)
 function verHistorial(id) {
   const movimientos = bitacora.filter((b) => b.solicitudId === id).slice().reverse();
   const html = movimientos.length
     ? `<ul class="timeline">${movimientos
         .map(
-          (m) => `
-        <li><strong>${escapeHtml(m.accion)}</strong><br>
-        ${escapeHtml(m.usuario)} · ${new Date(m.timestamp).toLocaleString()}<br>
-        <span class="text-muted">${escapeHtml(m.observaciones || "Sin observaciones")}</span></li>`
+          (m) => `<li><strong>${escapeHtml(m.accion)}</strong><br>
+          ${escapeHtml(m.usuario)} · ${new Date(m.timestamp).toLocaleString()}<br>
+          <span class="text-muted">${escapeHtml(m.observaciones || "Sin observaciones")}</span></li>`
         )
         .join("")}</ul>`
     : '<p class="text-muted">Sin movimientos registrados para esta solicitud.</p>';
-
   return abrirModal({ titulo: `Historial — ${id}`, contenidoHTML: html, modoInfo: true });
 }
 
-// ---------- HU-04: reporte de cumplimiento ----------
+// ---------- Cumplimiento ----------
 async function manejarReporteCumplimiento(event) {
   event.preventDefault();
+  const empresaId = $("empresaIdCumplimiento").value.trim().toUpperCase();
+  const inversionEjecutada = Number($("inversionEjecutada").value);
+  const empleosReales = Number($("empleosReales").value);
 
-  const empresaId = document.getElementById("empresaIdCumplimiento").value.trim().toUpperCase();
-  const inversionEjecutada = Number(document.getElementById("inversionEjecutada").value);
-  const empleosReales = Number(document.getElementById("empleosReales").value);
-
-  if (!empresaId || !inversionEjecutada || !empleosReales) {
-    mostrarToast("Complete todos los campos del reporte de cumplimiento.");
-    return;
-  }
+  if (!empresaId || isNaN(inversionEjecutada) || isNaN(empleosReales))
+    return mostrarToast("Complete todos los campos del reporte de cumplimiento.");
 
   const empresa = solicitudes.find((s) => s.id === empresaId);
-  if (!empresa) {
-    mostrarToast(`No existe una empresa con el ID ${empresaId}.`);
-    return;
-  }
-  if (empresa.estado !== "APROBADA") {
-    mostrarToast(`${empresaId} no está aprobada; solo empresas instaladas pueden reportar.`);
-    return;
-  }
+  if (!empresa) return mostrarToast(`No existe una empresa con el ID ${empresaId}.`);
+  if (empresa.estado !== "APROBADA") return mostrarToast(`${empresaId} no está aprobada; solo empresas instaladas pueden reportar.`);
 
   mostrarSpinner("Registrando reporte de cumplimiento...");
   try {
@@ -371,22 +315,19 @@ async function manejarReporteCumplimiento(event) {
   }
 }
 
-// ---------- HU-05: monitor de alertas ----------
+// ---------- Alertas con acción correctiva (US-04) ----------
 function renderPanelAuditoria() {
   reportesCalculados = reportesCalculadosFrescos();
-  const visibles = reportesCalculados.filter(
-    (x) => filtroAlerta === "TODOS" || x.calc.estadoAlerta === filtroAlerta
-  );
+  const visibles = reportesCalculados.filter((x) => filtroAlerta === "TODOS" || x.calc.estadoAlerta === filtroAlerta);
 
-  const tbody = document.getElementById("container-alertas-cumplimiento");
+  const tbody = $("container-alertas-cumplimiento");
   tbody.innerHTML = "";
-
-  if (visibles.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5">No hay reportes que coincidan con el filtro.</td></tr>';
-  }
+  if (visibles.length === 0)
+    tbody.innerHTML = '<tr><td colspan="6">No hay reportes que coincidan con el filtro.</td></tr>';
 
   visibles.forEach(({ rep, calc }) => {
     const fila = document.createElement("tr");
+    const requiereAccion = calc.estadoAlerta !== "CUMPLE" && calc.estadoAlerta !== "SIN_DATOS";
     fila.innerHTML = `
       <td>${escapeHtml(rep.id)}</td>
       <td>${escapeHtml(rep.empresaNombre || rep.empresaId)}</td>
@@ -394,6 +335,9 @@ function renderPanelAuditoria() {
           Emp: ${escapeHtml(rep.empleosComprometidos ?? "-")} → ${escapeHtml(rep.empleosReales ?? "-")}</td>
       <td>${calc.promedio === null ? "-" : calc.promedio.toFixed(1) + "%"}</td>
       <td>${badgeEstado(calc.estadoAlerta)}</td>
+      <td>${requiereAccion
+        ? `<button class="btn-mini btn-reevaluar btn-correctiva" data-rep="${rep.id}">Registrar acción</button>`
+        : '<span class="text-muted">—</span>'}</td>
     `;
     tbody.appendChild(fila);
   });
@@ -401,113 +345,140 @@ function renderPanelAuditoria() {
   renderBitacora();
 }
 
+async function manejarAccionCorrectiva(event) {
+  const btn = event.target.closest(".btn-correctiva");
+  if (!btn) return;
+  const item = reportesCalculados.find(({ rep }) => rep.id === btn.dataset.rep);
+  if (!item) return;
+
+  const detalle = await abrirModal({
+    titulo: `Acción correctiva — ${item.rep.empresaNombre}`,
+    mensaje: `Cumplimiento promedio: ${(item.calc.promedio ?? 0).toFixed(1)}% (${item.calc.estadoAlerta}). Describa la acción preventiva o correctiva:`,
+    entrada: true,
+    textoAceptar: "Registrar"
+  });
+  if (!detalle?.trim()) return mostrarToast("El detalle de la acción es obligatorio.");
+
+  try {
+    await registrarAccionCorrectiva({
+      empresaId: item.rep.empresaId,
+      empresaNombre: item.rep.empresaNombre,
+      usuario: USUARIO,
+      accion: "CORRECTIVA",
+      detalle: detalle.trim()
+    });
+    mostrarToast("Acción correctiva registrada en la bitácora de auditoría.", "success");
+    await refrescarDatos();
+  } catch (e) {
+    mostrarToast(e.message || "Error registrando la acción.");
+  }
+}
+
 function renderBitacora() {
-  const tbody = document.getElementById("container-bitacora");
+  const tbody = $("container-bitacora");
   if (!tbody) return;
   tbody.innerHTML = "";
-
   if (bitacora.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5">Sin movimientos de auditoría.</td></tr>';
     return;
   }
-
-  bitacora
-    .slice()
-    .reverse()
-    .forEach((entry) => {
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td>${new Date(entry.timestamp).toLocaleString()}</td>
-        <td>${escapeHtml(entry.usuario)}</td>
-        <td>${escapeHtml(entry.solicitudId)}</td>
-        <td>${escapeHtml(entry.accion)}</td>
-        <td>${escapeHtml(entry.observaciones || "-")}</td>
-      `;
-      tbody.appendChild(fila);
-    });
+  bitacora.slice().reverse().forEach((entry) => {
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td>${new Date(entry.timestamp).toLocaleString()}</td>
+      <td>${escapeHtml(entry.usuario)}</td>
+      <td>${escapeHtml(entry.solicitudId)}</td>
+      <td>${escapeHtml(entry.accion)}</td>
+      <td>${escapeHtml(entry.observaciones || "-")}</td>`;
+    tbody.appendChild(fila);
+  });
 }
 
-// ---------- Exportación CSV ----------
-function exportarSolicitudesCSV() {
-  descargarCSV(
-    "solicitudes_zofranca.csv",
-    solicitudesFiltradas().map((s) => ({
-      ID: s.id,
-      Empresa: s.empresaNombre,
-      Sector: s.sector,
-      InversionUSD: s.inversionProyectada,
-      Empleos: s.empleosDirectosProyectados,
-      IA_Nivel: s.evaluacionIA?.nivelRecomendacion ?? "",
-      IA_Puntaje: s.evaluacionIA?.puntajeAfinidad ?? "",
-      Fallback: s.evaluacionIA?.esFallback ? "SI" : "NO",
-      Estado: s.estado,
-      Fecha: s.fechaCreacion ? new Date(s.fechaCreacion).toLocaleString() : ""
-    }))
-  );
+// ---------- Chat interno con administración ----------
+async function refrescarChat() {
+  try {
+    const todos = await cargarMensajes();
+    const relevantes = todos.filter(
+      (m) =>
+        (m.de === USUARIO && m.para === "admin@zofranca.cr") ||
+        (m.de === "admin@zofranca.cr" && m.para === USUARIO)
+    );
+    $("chat-historial-analista").innerHTML = relevantes
+      .map(
+        (m) =>
+          `<div class="chat-msg ${m.de === USUARIO ? "user" : "bot"}"><strong>${m.de === USUARIO ? "Yo" : "Admin"}</strong><br>${escapeHtml(m.texto)}<br><small>${new Date(m.timestamp).toLocaleTimeString()}</small></div>`
+      )
+      .join("");
+    const h = $("chat-historial-analista");
+    h.scrollTop = h.scrollHeight;
+  } catch { /* silencioso */ }
 }
 
-function exportarReportesCSV() {
-  descargarCSV(
-    "cumplimiento_zofranca.csv",
-    reportesCalculados.map(({ rep, calc }) => ({
-      ID: rep.id,
-      Empresa: rep.empresaNombre || rep.empresaId,
-      Inversion_Comprometida: rep.inversionComprometida,
-      Inversion_Ejecutada: rep.inversionEjecutada,
-      Empleos_Comprometidos: rep.empleosComprometidos,
-      Empleos_Reales: rep.empleosReales,
-      Porcentaje: calc.promedio === null ? "" : calc.promedio.toFixed(1),
-      Alerta: calc.estadoAlerta,
-      Fecha: rep.fechaReporte ? new Date(rep.fechaReporte).toLocaleString() : ""
-    }))
-  );
-}
+$("chat-form-analista").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const texto = $("chat-input-analista").value.trim();
+  if (!texto) return;
+  await enviarMensaje({ de: USUARIO, para: "admin@zofranca.cr", texto });
+  $("chat-input-analista").value = "";
+  refrescarChat();
+});
+
+setInterval(() => {
+  if (!$("sec-chat").classList.contains("hidden")) refrescarChat();
+}, 4000);
 
 // ---------- Navegación ----------
-function mostrarSeccion(idSeccion) {
-  document.querySelectorAll(".modulo-seccion").forEach((sec) => sec.classList.add("hidden"));
-  document.getElementById(idSeccion).classList.remove("hidden");
-  document.querySelectorAll(".nav-btn").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.section === idSeccion);
+document.querySelectorAll(".nav-btn[data-section]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".modulo-seccion").forEach((sec) => sec.classList.add("hidden"));
+    $(btn.dataset.section).classList.remove("hidden");
+    document.querySelectorAll(".nav-btn").forEach((b) => b.classList.toggle("active", b === btn));
   });
+});
+
+$("btn-notificaciones").addEventListener("click", () => {
+  mostrarSeccionYScroll("sec-auditoria");
+});
+function mostrarSeccionYScroll(id) {
+  document.querySelector(`[data-section="${id}"]`)?.click();
 }
 
 // ---------- Inicialización ----------
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".nav-btn[data-section]").forEach((btn) => {
-    btn.addEventListener("click", () => mostrarSeccion(btn.dataset.section));
-  });
+  setTxt("usuario-actual", USUARIO);
 
-  document.getElementById("form-solicitud").addEventListener("submit", manejarEnvioSolicitud);
-  document.getElementById("form-cumplimiento").addEventListener("submit", manejarReporteCumplimiento);
-  document
-    .getElementById("container-solicitudes-pendientes")
-    .addEventListener("click", manejarAccionesAnalista);
+  $("container-solicitudes-pendientes").addEventListener("click", manejarAccionesAnalista);
+  $("container-alertas-cumplimiento").addEventListener("click", manejarAccionCorrectiva);
 
-  document.getElementById("filtro-busqueda").addEventListener("input", (e) => {
-    filtroTexto = e.target.value;
-    paginaActual = 1;
-    renderPanelAnalista();
-  });
-  document.getElementById("filtro-estado").addEventListener("change", (e) => {
-    filtroEstado = e.target.value;
-    paginaActual = 1;
-    renderPanelAnalista();
-  });
-  document.getElementById("filtro-alerta").addEventListener("change", (e) => {
-    filtroAlerta = e.target.value;
-    renderPanelAuditoria();
-  });
+  $("filtro-busqueda").addEventListener("input", (e) => { filtroTexto = e.target.value; paginaActual = 1; renderPanelAnalista(); });
+  $("filtro-estado").addEventListener("change", (e) => { filtroEstado = e.target.value; paginaActual = 1; renderPanelAnalista(); });
+  $("filtro-clasificacion").addEventListener("change", (e) => { filtroClasificacion = e.target.value; paginaActual = 1; renderPanelAnalista(); });
+  $("orden-afinidad").addEventListener("change", (e) => { ordenAfinidad = e.target.value; renderPanelAnalista(); });
+  $("filtro-alerta").addEventListener("change", (e) => { filtroAlerta = e.target.value; renderPanelAuditoria(); });
 
-  document.getElementById("btn-prev").addEventListener("click", () => {
-    if (paginaActual > 1) { paginaActual--; renderPanelAnalista(); }
-  });
-  document.getElementById("btn-next").addEventListener("click", () => {
-    paginaActual++; renderPanelAnalista();
-  });
+  $("btn-prev").addEventListener("click", () => { if (paginaActual > 1) { paginaActual--; renderPanelAnalista(); } });
+  $("btn-next").addEventListener("click", () => { paginaActual++; renderPanelAnalista(); });
 
-  document.getElementById("btn-exportar-solicitudes").addEventListener("click", exportarSolicitudesCSV);
-  document.getElementById("btn-exportar-reportes").addEventListener("click", exportarReportesCSV);
+  $("btn-exportar-xlsx").addEventListener("click", () => exportarAceptadasXLSX());
+  $("btn-exportar-reportes").addEventListener("click", () =>
+    descargarCSV(
+      "cumplimiento_zofranca.csv",
+      reportesCalculados.map(({ rep, calc }) => ({
+        ID: rep.id,
+        Empresa: rep.empresaNombre || rep.empresaId,
+        Inversion_Comprometida: rep.inversionComprometida,
+        Inversion_Ejecutada: rep.inversionEjecutada,
+        Empleos_Comprometidos: rep.empleosComprometidos,
+        Empleos_Reales: rep.empleosReales,
+        Porcentaje: calc.promedio === null ? "" : calc.promedio.toFixed(1),
+        Alerta: calc.estadoAlerta,
+        Fecha: rep.fechaReporte ? new Date(rep.fechaReporte).toLocaleString() : ""
+      }))
+    )
+  );
+
+  $("form-cumplimiento").addEventListener("submit", manejarReporteCumplimiento);
 
   refrescarDatos();
+  refrescarChat();
 });

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal de Empresas · Zona Franca CR</title>
+  <link rel="stylesheet" href="/src/styles/styles.css">
+  <link rel="stylesheet" href="/src/styles/global.css">
+  <script>
+    (function(){
+      var t = localStorage.getItem('zf_tema') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+
+  <div id="loading-spinner" class="spinner-overlay hidden" aria-hidden="true">
+    <div class="spinner"><p id="spinner-text">Procesando...</p></div>
+  </div>
+  <div id="toast-error" class="toast-error hidden" role="alert" aria-live="polite">
+    <span id="toast-message"></span>
+  </div>
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+      <h3 id="modal-titulo"></h3>
+      <p id="modal-mensaje" class="hidden"></p>
+      <div id="modal-contenido" class="hidden"></div>
+      <textarea id="modal-input" class="hidden" maxlength="250"></textarea>
+      <div id="modal-contador" class="char-counter hidden"></div>
+      <div class="modal-acciones">
+        <button id="modal-btn-cancelar" class="btn-secondary" type="button">Cancelar</button>
+        <button id="modal-btn-aceptar" class="btn-primary" type="button">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Encabezado -->
+  <header class="navbar">
+    <div class="brand-container">
+      <div class="logo-badge">ZF</div>
+      <h1 data-i18n="app.titulo">Zona Franca CR</h1>
+      <span class="tagline">Portal de Empresas</span>
+    </div>
+    <nav aria-label="Navegación principal">
+      <button class="nav-btn active" data-section="sec-solicitud" data-i18n="nav.solicitud">Solicitud</button>
+      <button class="nav-btn" data-section="sec-mensajes" data-i18n="nav.mensajes">Mensajería</button>
+      <a class="nav-btn" href="/" style="text-decoration:none;">Salir</a>
+    </nav>
+    <div class="controles-globales">
+      <select class="idioma-select" data-idioma-selector aria-label="Idioma"></select>
+      <button class="tema-btn" data-tema-toggle aria-label="Alternar tema">🌙</button>
+    </div>
+  </header>
+
+  <main class="main-container">
+
+    <!-- US-01: Formulario de Solicitud de Instalación -->
+    <section id="sec-solicitud" class="modulo-seccion">
+      <div class="section-header">
+        <h2>Formulario de Solicitud de Instalación</h2>
+        <p>Complete los datos y adjunte su plan de operaciones. Recibirá un número de radicado automático.</p>
+      </div>
+
+      <form id="form-solicitud" class="card-form" novalidate autocomplete="off">
+        <div class="form-group">
+          <label for="empresaNombre">Nombre de la Empresa *</label>
+          <input type="text" id="empresaNombre" maxlength="80" required placeholder="Ej. TechCorp Costa Rica">
+          <small class="msg-campo" data-msg-for="empresaNombre"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="cedulaJuridica">Cédula Jurídica / Identificación Fiscal *</label>
+          <input type="text" id="cedulaJuridica" maxlength="20" required placeholder="Ej. 3-101-555888">
+          <small class="msg-campo" data-msg-for="cedulaJuridica"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="sectorEmpresa">Sector de Especialización *</label>
+          <select id="sectorEmpresa" required>
+            <option value="">Seleccione un sector</option>
+            <option value="Tecnología">Tecnología</option>
+            <option value="Ciencias de la Vida">Ciencias de la Vida</option>
+            <option value="Manufactura Avanzada">Manufactura Avanzada</option>
+            <option value="Servicios">Servicios (BPO)</option>
+            <option value="Logística">Logística</option>
+          </select>
+          <small class="msg-campo" data-msg-for="sectorEmpresa"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="telefonoContacto">Teléfono de Contacto *</label>
+          <input type="tel" id="telefonoContacto" maxlength="20" required placeholder="+506 2222-0000">
+          <small class="msg-campo" data-msg-for="telefonoContacto"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="inversionProyectada">Monto Estimado de Inversión ($ USD) *</label>
+          <input type="number" id="inversionProyectada" min="1" max="1000000000" required placeholder="ej. 150000">
+          <small class="msg-campo" data-msg-for="inversionProyectada"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="empleosProyectados">Proyección de Empleos Directos *</label>
+          <input type="number" id="empleosProyectados" min="1" max="99999" required placeholder="ej. 45">
+          <small class="msg-campo" data-msg-for="empleosProyectados"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="empleosIndirectosProyectados">Proyección de Empleos Indirectos</label>
+          <input type="number" id="empleosIndirectosProyectados" min="0" max="99999" placeholder="ej. 30">
+        </div>
+
+        <div class="form-group full-width">
+          <label for="pitchEmpresa">Carta / Pitch de Presentación * <span class="text-muted">(¿Por qué debe ser seleccionada?)</span></label>
+          <textarea id="pitchEmpresa" rows="4" maxlength="1000" required
+            placeholder="Argumente los méritos de su empresa: experiencia, mercado objetivo, impacto en el país..."></textarea>
+          <div class="char-counter"><span id="pitch-contador">0</span>/1000</div>
+          <small class="msg-campo" data-msg-for="pitchEmpresa"></small>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Plan de Operaciones y Anexos * <span class="text-muted">(PDF o ZIP)</span></label>
+          <div id="dropzone" class="dropzone" tabindex="0" role="button"
+            aria-label="Arrastre aquí su documento o haga clic para seleccionarlo">
+            📎 Arrastre su documento aquí o <strong>haga clic para buscarlo</strong>
+            <div id="dropzone-nombre" style="margin-top:6px;font-weight:600;"></div>
+          </div>
+          <input type="file" id="documentosAdjuntos" accept=".pdf,.zip,application/pdf,application/zip" hidden>
+          <small id="error-file" class="style-error"></small>
+        </div>
+
+        <div class="form-group full-width btn-container">
+          <button type="submit" class="btn-primary" id="btn-enviar">Enviar Solicitud</button>
+        </div>
+      </form>
+
+      <!-- Comprobante / Radicado -->
+      <div id="resultado-radicado" class="ia-resultado hidden">
+        <h3>✅ Solicitud Radicada</h3>
+        <p><strong>Número de radicado:</strong> <span id="radicado-num" style="font-size:1.1rem;color:var(--teal-accent);font-weight:800;"></span></p>
+        <p><strong>Pre-clasificación IA:</strong> <span id="radicado-ia">-</span></p>
+        <p><strong>Justificación:</strong> <span id="radicado-justificacion">-</span></p>
+        <p class="text-muted">📧 Se envió una confirmación de recepción al correo registrado (simulado).</p>
+      </div>
+    </section>
+
+    <!-- Centro de Mensajes e Historial -->
+    <section id="sec-mensajes" class="modulo-seccion hidden">
+      <div class="section-header">
+        <h2>📬 Centro de Mensajes e Historial</h2>
+        <p>Estado en tiempo real del trámite y retroalimentación oficial del analista.</p>
+      </div>
+
+      <div id="estado-tramite" class="kpi-strip">
+        <div class="kpi-card"><span class="kpi-valor" id="tm-radicado">—</span><span class="kpi-etiqueta">Radicado</span></div>
+        <div class="kpi-card"><span class="kpi-valor" id="tm-empresa">—</span><span class="kpi-etiqueta">Empresa</span></div>
+        <div class="kpi-card"><span class="kpi-valor" id="tm-estado">—</span><span class="kpi-etiqueta">Estado del Trámite</span></div>
+        <div class="kpi-card"><span class="kpi-valor" id="tm-afinidad">—</span><span class="kpi-etiqueta">Afinidad IA</span></div>
+        <div class="kpi-card"><span class="kpi-valor" id="tm-fecha">—</span><span class="kpi-etiqueta">Fecha de Envío</span></div>
+      </div>
+
+      <div class="table-container" style="margin-top:1rem;">
+        <table>
+          <thead>
+            <tr><th>Bandeja de Entrada · Resoluciones Oficiales</th><th style="width:180px;">Fecha</th></tr>
+          </thead>
+          <tbody id="bandeja-entrada">
+            <tr><td colspan="2">Sin mensajes por ahora.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-header" style="margin-top:2rem;">
+        <h2>Línea de Tiempo del Trámite</h2>
+      </div>
+      <ul class="timeline" id="timeline-tramite" style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;padding:14px 16px 14px 22px;"></ul>
+    </section>
+
+  </main>
+
+  <script type="module" src="/src/js/empresas.js"></script>
+</body>
+</html>

@@ -1,105 +1,118 @@
 // URL del backend configurable vía .env (VITE_API_URL)
 const API_URL = import.meta.env?.VITE_API_URL || "http://localhost:3000";
 
-// Carga en Paralelo (RF-16)
-export async function cargarDatosDashboard() {
-  try {
-    const [resSolicitudes, resReportes] = await Promise.all([
-      fetch(`${API_URL}/solicitudes`),
-      fetch(`${API_URL}/reportesCumplimiento`)
-    ]);
-
-    if (!resSolicitudes.ok || !resReportes.ok) throw new Error("Error en la conexión con json-server.");
-
-    const solicitudes = await resSolicitudes.json();
-    const reportes = await resReportes.json();
-
-    return { solicitudes, reportes };
-  } catch (error) {
-    console.error("Error al obtener datos:", error);
-    throw error;
-  }
+async function req(ruta, opciones = {}) {
+  const res = await fetch(`${API_URL}${ruta}`, {
+    headers: { "Content-Type": "application/json" },
+    ...opciones
+  });
+  if (!res.ok) throw new Error(`Error ${res.status} en ${ruta}`);
+  return res.status === 204 ? null : await res.json();
 }
 
-// Guardar Solicitud
+const post = (ruta, body) => req(ruta, { method: "POST", body: JSON.stringify(body) });
+const patch = (ruta, body) => req(ruta, { method: "PATCH", body: JSON.stringify(body) });
+
+// Carga en Paralelo (RF-16)
+export async function cargarDatosDashboard() {
+  const [solicitudes, reportes] = await Promise.all([
+    req("/solicitudes"),
+    req("/reportesCumplimiento")
+  ]);
+  return { solicitudes, reportes };
+}
+
+export const cargarAnalistas = () => req("/analistas");
+
+export async function validarLoginAnalista(correo, password) {
+  const lista = await cargarAnalistas();
+  return lista.find((a) => a.correo === correo && a.password === password) || null;
+}
+
+// Guardar Solicitud (US-01: radicado automático + notificación simulada)
 export async function guardarSolicitud(solicitudData, evaluacionIA, archivo) {
   const payload = {
     ...solicitudData,
     archivoAdjunto: archivo ? archivo.name : "documento.pdf",
     tamanoArchivoMB: archivo ? parseFloat((archivo.size / (1024 * 1024)).toFixed(2)) : 0,
     estado: "PENDIENTE_EVALUACION",
+    clasificacion: derivarClasificacion(evaluacionIA, solicitudData),
     fechaCreacion: new Date().toISOString(),
     evaluacionIA
   };
-
-  const res = await fetch(`${API_URL}/solicitudes`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) throw new Error("Error al guardar la solicitud en el servidor.");
-  return await res.json();
+  return post("/solicitudes", payload);
 }
 
-// Dictamen Humano (RF-09) y Auditoría (RF-14)
+function derivarClasificacion(ia, data) {
+  if (!data.empresaNombre || !data.sector || !data.inversionProyectada) return "INCOMPLETA";
+  if (ia?.nivelRecomendacion === "REVISAR") return "REQUIERE_REVISION";
+  return "PRE_CLASIFICADA";
+}
+
+// Dictamen Humano (RF-09): estado + justificación obligatoria + trazabilidad
 export async function aplicarDictamenHumano(solicitudId, nuevoEstado, usuario, observaciones) {
-  const resPatch = await fetch(`${API_URL}/solicitudes/${solicitudId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ estado: nuevoEstado })
+  const ahora = new Date().toISOString();
+  await patch(`/solicitudes/${solicitudId}`, {
+    estado: nuevoEstado,
+    ...(nuevoEstado === "APROBADA" ? { fechaAprobacion: ahora } : {}),
+    resolucionAnalista: { justificacion: observaciones, usuario, timestamp: ahora }
   });
-
-  if (!resPatch.ok) throw new Error("Error al actualizar el estado de la solicitud.");
-
-  const resBitacora = await fetch(`${API_URL}/bitacoraAuditoria`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      solicitudId,
-      usuario,
-      accion: `CAMBIO_ESTADO_${nuevoEstado}`,
-      estadoNuevo: nuevoEstado,
-      observaciones,
-      timestamp: new Date().toISOString()
-    })
+  await notificarEmpresa({
+    destinatario: solicitudId,
+    asunto: `Solicitud ${solicitudId} ${nuevoEstado.toLowerCase()}`,
+    cuerpo: observaciones
   });
-
-  if (!resBitacora.ok) throw new Error("Error al registrar el movimiento en la bitácora.");
+  return registrarBitacora({ solicitudId, usuario, nuevoEstado, observaciones, timestamp: ahora });
 }
 
-// Actualizar pre-clasificación IA (re-evaluación)
 export async function actualizarEvaluacionIA(solicitudId, evaluacionIA) {
-  const res = await fetch(`${API_URL}/solicitudes/${solicitudId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ evaluacionIA })
-  });
-
-  if (!res.ok) throw new Error("Error al actualizar la evaluación IA.");
-  return await res.json();
+  return patch(`/solicitudes/${solicitudId}`, { evaluacionIA });
 }
 
-// Registro de Reporte de Cumplimiento (HU-04)
+// US-04: acciones preventivas/correctivas sobre alertas
+export async function registrarAccionCorrectiva({ empresaId, empresaNombre, usuario, accion, detalle }) {
+  return registrarBitacora({
+    solicitudId: empresaId,
+    usuario,
+    accion: `ACCION_${accion}`,
+    observaciones: `[${empresaNombre}] ${detalle}`,
+    timestamp: new Date().toISOString()
+  });
+}
+
 export async function guardarReporteCumplimiento(reporteData) {
-  const payload = {
-    ...reporteData,
-    fechaReporte: new Date().toISOString()
-  };
+  return post("/reportesCumplimiento", { ...reporteData, fechaReporte: new Date().toISOString() });
+}
 
-  const res = await fetch(`${API_URL}/reportesCumplimiento`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+export const cargarBitacora = () => req("/bitacoraAuditoria");
+
+export function registrarBitacora(entry) {
+  return post("/bitacoraAuditoria", entry);
+}
+
+// US-01 / Portal Empresa: notificaciones simuladas (correo)
+export async function notificarEmpresa({ destinatario, asunto, cuerpo }) {
+  return post("/notificaciones", {
+    id: Date.now(),
+    destinatario,
+    canal: "CORREO_SIMULADO",
+    asunto,
+    cuerpo,
+    leida: false,
+    timestamp: new Date().toISOString()
   });
-
-  if (!res.ok) throw new Error("Error al guardar el reporte de cumplimiento.");
-  return await res.json();
 }
 
-// Bitácora de Auditoría (RF-14)
-export async function cargarBitacora() {
-  const res = await fetch(`${API_URL}/bitacoraAuditoria`);
-  if (!res.ok) throw new Error("Error al consultar la bitácora de auditoría.");
-  return await res.json();
+export const cargarNotificaciones = (empresaId) =>
+  req(`/notificaciones?destinatario=${encodeURIComponent(empresaId)}&_sort=timestamp&_order=desc`);
+
+export async function marcarNotificacionesLeidas(lista) {
+  return Promise.all(lista.filter((n) => !n.leida).map((n) => patch(`/notificaciones/${n.id}`, { leida: true })));
 }
+
+// Chat interno admin <-> analistas (polling sobre json-server).
+// json-server no soporta OR en query params: se trae todo y filtra el cliente.
+export const cargarMensajes = () => req("/mensajes?_sort=timestamp&_order=asc");
+
+export const enviarMensaje = ({ de, para, texto }) =>
+  post("/mensajes", { de, para, texto, timestamp: new Date().toISOString() });

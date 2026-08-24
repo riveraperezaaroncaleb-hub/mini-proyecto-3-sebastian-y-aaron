@@ -3,181 +3,140 @@
     {
       "id": "EMP-001",
       "empresaNombre": "TechCorp Costa Rica",
+      "cedulaJuridica": "3-101-555888",
+      "telefono": "+506 2222-1010",
       "sector": "Servicios",
       "inversionProyectada": 250000,
       "empleosDirectosProyectados": 45,
+      "empleosIndirectosProyectados": 30,
+      "pitch": "Centro de servicios compartidos con más de 15 años de experiencia regional. Elegimos Costa Rica por su talento bilingüe y estabilidad jurídica.",
       "archivoAdjunto": "propuesta-techcorp.pdf",
       "tamanoArchivoMB": 2.4,
       "estado": "APROBADA",
+      "clasificacion": "PRE_CLASIFICADA",
+      "analistaAsignado": "ana.mendez@zofranca.cr",
       "fechaCreacion": "2026-08-10T14:30:00.000Z",
+      "fechaAprobacion": "2026-08-12T15:00:00.000Z",
       "evaluacionIA": {
         "puntajeAfinidad": 100,
         "nivelRecomendacion": "RECOMENDADA",
+        "desglose": [
+          {
+            "criterio": "Inversión mínima ($150,000 USD)",
+            "cumple": true,
+            "peso": 50
+          },
+          {
+            "criterio": "Cuota mínima de 10 empleos directos",
+            "cumple": true,
+            "peso": 30
+          },
+          {
+            "criterio": "Sector estratégico autorizable (Servicios)",
+            "cumple": true,
+            "peso": 20
+          }
+        ],
         "justificacion": "Satisface la inversión mínima requerida ($150,000 USD). Cumple con la cuota mínima de 10 empleos directos. Sector estratégico autorizable (Servicios).",
         "esFallback": false,
         "fechaEvaluacion": "2026-08-10T14:30:05.000Z"
+      },
+      "resolucionAnalista": {
+        "justificacion": "Cumple con todos los requisitos del régimen. Plan de operaciones sólido y coherente.",
+        "usuario": "ana.mendez@zofranca.cr",
+        "timestamp": "2026-08-12T15:00:00.000Z"
       }
     },
     {
       "id": "EMP-002",
       "empresaNombre": "BioLife Laboratories",
+      "cedulaJuridica": "3-102-774411",
+      "telefono": "+506 8888-2020",
       "sector": "Ciencias de la Vida",
       "inversionProyectada": 180000,
       "empleosDirectosProyectados": 12,
+      "empleosIndirectosProyectados": 8,
+      "pitch": "Laboratorio de investigación farmacéutica orientado a biológicos genéricos para el mercado centroamericano.",
       "archivoAdjunto": "propuesta-biolife.pdf",
       "tamanoArchivoMB": 5.1,
       "estado": "RECHAZADA",
+      "clasificacion": "REQUIERE_REVISION",
+      "analistaAsignado": "carlos.rojas@zofranca.cr",
       "fechaCreacion": "2026-08-15T09:00:00.000Z",
       "evaluacionIA": {
         "puntajeAfinidad": 100,
         "nivelRecomendacion": "RECOMENDADA",
+        "desglose": [
+          {
+            "criterio": "Inversión mínima ($150,000 USD)",
+            "cumple": true,
+            "peso": 50
+          },
+          {
+            "criterio": "Cuota mínima de 10 empleos directos",
+            "cumple": true,
+            "peso": 30
+          },
+          {
+            "criterio": "Sector estratégico autorizable (Ciencias de la Vida)",
+            "cumple": true,
+            "peso": 20
+          }
+        ],
         "justificacion": "Satisface la inversión mínima requerida ($150,000 USD). Cumple con la cuota mínima de 10 empleos directos. Sector estratégico autorizable (Ciencias de la Vida).",
         "esFallback": false,
         "fechaEvaluacion": "2026-08-15T09:00:04.000Z"
+      },
+      "resolucionAnalista": {
+        "justificacion": "El plan de operaciones no acredita la capacidad financiera comprometida. Se invita a reintentar con aval bancario.",
+        "usuario": "carlos.rojas@zofranca.cr",
+        "timestamp": "2026-08-16T11:20:00.000Z"
       }
     },
     {
       "id": "EMP-003",
       "empresaNombre": "Textiles del Este",
+      "cedulaJuridica": "3-103-223344",
+      "telefono": "+506 2555-3030",
       "sector": "Manufactura Avanzada",
       "inversionProyectada": 90000,
       "empleosDirectosProyectados": 6,
+      "empleosIndirectosProyectados": 3,
+      "pitch": "Planta de confección técnica con proyección de exportación textil.",
       "archivoAdjunto": "propuesta-textiles.pdf",
       "tamanoArchivoMB": 1.2,
       "estado": "RECHAZADA",
+      "clasificacion": "INCOMPLETA",
+      "analistaAsignado": "ana.mendez@zofranca.cr",
       "fechaCreacion": "2026-08-18T16:45:00.000Z",
       "evaluacionIA": {
         "puntajeAfinidad": 20,
         "nivelRecomendacion": "RECHAZADA",
+        "desglose": [
+          {
+            "criterio": "Inversión mínima ($150,000 USD)",
+            "cumple": false,
+            "peso": 50
+          },
+          {
+            "criterio": "Cuota mínima de 10 empleos directos",
+            "cumple": false,
+            "peso": 30
+          },
+          {
+            "criterio": "Sector estratégico autorizable (Manufactura Avanzada)",
+            "cumple": true,
+            "peso": 20
+          }
+        ],
         "justificacion": "Inversión insuficiente para el régimen ($150,000 USD mín). Proyección de empleo inferior al mínimo reglamentario (10). Sector estratégico autorizable (Manufactura Avanzada).",
         "esFallback": true,
         "fechaEvaluacion": "2026-08-18T16:45:06.000Z"
-      }
-    },
-    {
-      "id": "EMP-531874",
-      "empresaNombre": "fgrsgs",
-      "sector": "Ciencias de la Vida",
-      "inversionProyectada": 33,
-      "empleosDirectosProyectados": 2,
-      "archivoAdjunto": "ToDo_List_y_Guia_DOM.pdf",
-      "tamanoArchivoMB": 0.04,
-      "estado": "RECHAZADA",
-      "fechaCreacion": "2026-08-20T21:48:56.881Z",
-      "evaluacionIA": {
-        "puntajeAfinidad": 0,
-        "nivelRecomendacion": "RECHAZADA",
-        "justificacion": "Evaluación calculada vía algoritmo de contingencia (Fallback local) debido a timeout de IA (5s).",
-        "esFallback": true,
-        "fechaEvaluacion": "2026-08-20T21:48:56.880Z"
-      }
-    },
-    {
-      "id": "EMP-591112",
-      "empresaNombre": "jwnehfbyuhdf",
-      "sector": "Manufactura Avanzada",
-      "inversionProyectada": 3,
-      "empleosDirectosProyectados": 1,
-      "archivoAdjunto": "ToDo_List_y_Guia_DOM.pdf",
-      "tamanoArchivoMB": 0.04,
-      "estado": "PENDIENTE_EVALUACION",
-      "fechaCreacion": "2026-08-20T21:49:55.749Z",
-      "evaluacionIA": {
-        "puntajeAfinidad": 20,
-        "nivelRecomendacion": "RECHAZADA",
-        "justificacion": "Inversión insuficiente para el régimen ($150,000 USD mín). Proyección de empleo inferior al mínimo reglamentario (10). Sector estratégico autorizable (Manufactura Avanzada).",
-        "esFallback": false,
-        "fechaEvaluacion": "2026-08-20T21:49:55.749Z"
-      }
-    },
-    {
-      "id": "EMP-640424",
-      "empresaNombre": "sergsrtth",
-      "sector": "Manufactura Avanzada",
-      "inversionProyectada": 3000000,
-      "empleosDirectosProyectados": 44,
-      "archivoAdjunto": "levantamiento_requerimientos_v2.pdf",
-      "tamanoArchivoMB": 0.03,
-      "estado": "PENDIENTE_EVALUACION",
-      "fechaCreacion": "2026-08-20T21:50:41.926Z",
-      "evaluacionIA": {
-        "puntajeAfinidad": 100,
-        "nivelRecomendacion": "RECOMENDADA",
-        "justificacion": "Satisface la inversión mínima requerida ($150,000 USD). Cumple con la cuota mínima de 10 empleos directos. Sector estratégico autorizable (Manufactura Avanzada).",
-        "esFallback": false,
-        "fechaEvaluacion": "2026-08-20T21:50:41.926Z"
-      }
-    },
-    {
-      "id": "EMP-067735",
-      "empresaNombre": "...",
-      "sector": "Ciencias de la Vida",
-      "inversionProyectada": 9,
-      "empleosDirectosProyectados": 89,
-      "archivoAdjunto": "levantamiento_requerimientos.pdf",
-      "tamanoArchivoMB": 0.03,
-      "estado": "PENDIENTE_EVALUACION",
-      "fechaCreacion": "2026-08-20T21:57:51.133Z",
-      "evaluacionIA": {
-        "puntajeAfinidad": 50,
-        "nivelRecomendacion": "REVISAR",
-        "justificacion": "Inversión insuficiente para el régimen ($150,000 USD mín). Cumple con la cuota mínima de 10 empleos directos. Sector estratégico autorizable (Ciencias de la Vida).",
-        "esFallback": false,
-        "fechaEvaluacion": "2026-08-20T21:57:51.119Z"
-      }
-    },
-    {
-      "id": "EMP-960280",
-      "empresaNombre": "srrgrtthh",
-      "sector": "Manufactura Avanzada",
-      "inversionProyectada": 1,
-      "empleosDirectosProyectados": 12,
-      "archivoAdjunto": "ToDo_List_y_Guia_DOM.pdf",
-      "tamanoArchivoMB": 0.04,
-      "estado": "PENDIENTE_EVALUACION",
-      "fechaCreacion": "2026-08-20T22:12:43.896Z",
-      "evaluacionIA": {
-        "puntajeAfinidad": 50,
-        "nivelRecomendacion": "REVISAR",
-        "justificacion": "Inversión insuficiente para el régimen ($150,000 USD mín). Cumple con la cuota mínima de 10 empleos directos. Sector estratégico autorizable (Manufactura Avanzada).",
-        "esFallback": false,
-        "fechaEvaluacion": "2026-08-20T22:12:43.878Z"
-      }
-    },
-    {
-      "id": "EMP-004792",
-      "empresaNombre": "nsjnuiwefun",
-      "sector": "Manufactura Avanzada",
-      "inversionProyectada": 10000000,
-      "empleosDirectosProyectados": 123,
-      "archivoAdjunto": "levantamiento_requerimientos_v2.pdf",
-      "tamanoArchivoMB": 0.03,
-      "estado": "PENDIENTE_EVALUACION",
-      "fechaCreacion": "2026-08-20T22:13:27.792Z",
-      "evaluacionIA": {
-        "puntajeAfinidad": 100,
-        "nivelRecomendacion": "RECOMENDADA",
-        "justificacion": "Satisface la inversión mínima requerida ($150,000 USD). Cumple con la cuota mínima de 10 empleos directos. Sector estratégico autorizable (Manufactura Avanzada).",
-        "esFallback": false,
-        "fechaEvaluacion": "2026-08-20T22:13:27.792Z"
-      }
-    },
-    {
-      "id": "EMP-863755",
-      "empresaNombre": "dfafds",
-      "sector": "Servicios",
-      "inversionProyectada": 234233,
-      "empleosDirectosProyectados": 345476,
-      "archivoAdjunto": "levantamiento_requerimientos_v2.pdf",
-      "tamanoArchivoMB": 0.03,
-      "estado": "PENDIENTE_EVALUACION",
-      "fechaCreacion": "2026-08-21T17:21:08.434Z",
-      "evaluacionIA": {
-        "puntajeAfinidad": 100,
-        "nivelRecomendacion": "RECOMENDADA",
-        "justificacion": "Satisface la inversión mínima requerida ($150,000 USD). Cumple con la cuota mínima de 10 empleos directos. Sector estratégico autorizable (Servicios).",
-        "esFallback": false,
-        "fechaEvaluacion": "2026-08-21T17:21:08.434Z"
+      },
+      "resolucionAnalista": {
+        "justificacion": "No alcanza los umbrales reglamentarios de inversión ni empleo directo.",
+        "usuario": "ana.mendez@zofranca.cr",
+        "timestamp": "2026-08-19T08:30:00.000Z"
       }
     }
   ],
@@ -206,11 +165,83 @@
   "bitacoraAuditoria": [
     {
       "solicitudId": "EMP-001",
-      "usuario": "analista@zofranca.cr",
+      "usuario": "ana.mendez@zofranca.cr",
       "accion": "CAMBIO_ESTADO_APROBADA",
       "estadoNuevo": "APROBADA",
       "observaciones": "Cumple con todos los requisitos del régimen.",
       "timestamp": "2026-08-12T15:00:00.000Z"
+    },
+    {
+      "solicitudId": "EMP-002",
+      "usuario": "carlos.rojas@zofranca.cr",
+      "accion": "CAMBIO_ESTADO_RECHAZADA",
+      "estadoNuevo": "RECHAZADA",
+      "observaciones": "El plan de operaciones no acredita la capacidad financiera comprometida.",
+      "timestamp": "2026-08-16T11:20:00.000Z"
+    },
+    {
+      "solicitudId": "EMP-003",
+      "usuario": "ana.mendez@zofranca.cr",
+      "accion": "CAMBIO_ESTADO_RECHAZADA",
+      "estadoNuevo": "RECHAZADA",
+      "observaciones": "No alcanza los umbrales reglamentarios de inversión ni empleo directo.",
+      "timestamp": "2026-08-19T08:30:00.000Z"
+    }
+  ],
+  "analistas": [
+    {
+      "id": 1,
+      "nombre": "Ana Méndez",
+      "correo": "ana.mendez@zofranca.cr",
+      "telefono": "+506 8000-1001",
+      "especialidad": "Servicios y Logística",
+      "estadoCuenta": "ACTIVA",
+      "password": "zf2026"
+    },
+    {
+      "id": 2,
+      "nombre": "Carlos Rojas",
+      "correo": "carlos.rojas@zofranca.cr",
+      "telefono": "+506 8000-1002",
+      "especialidad": "Ciencias de la Vida",
+      "estadoCuenta": "ACTIVA",
+      "password": "zf2026"
+    },
+    {
+      "id": 3,
+      "nombre": "María Solís",
+      "correo": "maria.solis@zofranca.cr",
+      "telefono": "+506 8000-1003",
+      "especialidad": "Manufactura Avanzada",
+      "estadoCuenta": "SUSPENDIDA",
+      "password": "zf2026"
+    }
+  ],
+  "mensajes": [
+    {
+      "id": 1,
+      "de": "admin@zofranca.cr",
+      "para": "ana.mendez@zofranca.cr",
+      "texto": "Ana, buen día. Recuerde priorizar las solicitudes con afinidad mayor a 75%.",
+      "timestamp": "2026-08-20T08:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "de": "ana.mendez@zofranca.cr",
+      "para": "admin@zofranca.cr",
+      "texto": "Recibido. Ya revisé la bandeja y despacharé las pre-clasificadas hoy.",
+      "timestamp": "2026-08-20T08:05:00.000Z"
+    }
+  ],
+  "notificaciones": [
+    {
+      "id": 1,
+      "destinatario": "EMP-001",
+      "canal": "CORREO_SIMULADO",
+      "asunto": "Solicitud EMP-001 aprobada",
+      "cuerpo": "Su solicitud ha sido APROBADA por el régimen de Zona Franca.",
+      "leida": true,
+      "timestamp": "2026-08-12T15:01:00.000Z"
     }
   ]
 }

@@ -1,248 +1,587 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZoFranca CR - Plataforma de Gestión y Cumplimiento</title>
-      <link rel="stylesheet" href="./src/styles/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PROCOMER · Sistema de gestión de solicitudes al Régimen de Zona Franca de Costa Rica. Inversión, empleo y cumplimiento verificado por IA.">
+  <meta property="og:title" content="PROCOMER · Zona Franca Costa Rica">
+  <meta property="og:description" content="Plataforma digital para la gestión de Zonas Francas en Costa Rica. Solicite su ingreso al régimen hoy.">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=80">
+  <title>PROCOMER · Zona Franca CR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/styles/login.css">
+  <link rel="stylesheet" href="/src/styles/global.css">
+  <link rel="stylesheet" href="/src/styles/landing-enhanced.css">
+  <script type="module" src="/src/js/init-theme.js"></script>
 </head>
 <body>
 
-    <!-- Spinner de carga asíncrona (RF-02) -->
-    <div id="loading-spinner" class="spinner-overlay hidden" aria-hidden="true">
-        <div class="spinner">
-            <p id="spinner-text">Procesando petición asíncrona...</p>
-        </div>
+  <!-- Announcement Bar -->
+  <div class="announcement-bar" id="announcement-bar">
+    <span>🇨🇷 &nbsp;Convocatoria 2026: <strong>Régimen de Zona Franca</strong> — Evaluaciones digitales en un plazo menor a 72 horas.</span>
+    <button class="announcement-close" onclick="document.getElementById('announcement-bar').style.display='none'" aria-label="Cerrar">✕</button>
+  </div>
+
+  <!-- Navbar -->
+  <header class="navbar" id="main-navbar">
+    <div class="logo-container">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e2/Logo_PROCOMER.png" alt="Logo PROCOMER" class="logo">
+      <div class="nav-brand">
+        <span class="nav-brand-name">PROCOMER</span>
+        <span class="nav-brand-sub">Zona Franca Costa Rica</span>
+      </div>
     </div>
 
-    <!-- Toast de notificaciones -->
-    <div id="toast-error" class="toast-error hidden" role="alert" aria-live="polite">
-        <span id="toast-message"></span>
+    <nav class="nav-links" aria-label="Navegación principal">
+      <a href="#requisitos" class="nav-link">Requisitos</a>
+      <a href="#sectores" class="nav-link">Sectores</a>
+      <a href="#proceso" class="nav-link">Proceso</a>
+      <a href="#testimonios" class="nav-link">Empresas</a>
+      <a href="#contacto" class="nav-link">Contacto</a>
+    </nav>
+
+    <div class="actions controles-globales">
+      <select class="idioma-select" data-idioma-selector aria-label="Idioma"></select>
+      <button class="tema-btn" id="btn-tema" data-tema-toggle aria-label="Alternar tema" title="Cambiar tema">🌙</button>
+      <button class="btn btn-primary" id="btn-acceso" onclick="abrirModalAcceso()">
+        <svg class="svg-icon" style="margin-right: 6px;" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <span data-i18n="btn.acceso">Iniciar Sesión</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-split">
+    <div class="hero-split-content">
+      <div class="hero-badge-pill">
+        <span class="badge-dot"></span>
+        🇨🇷 &nbsp;Ecosistema de Inversión Líder en Centroamérica
+      </div>
+
+      <h1 class="hero-title" data-i18n="hero.titulo">
+        Impulsamos la<br>
+        <span class="hero-title-accent">Inversión Global</span><br>
+        en Costa Rica
+      </h1>
+
+      <p class="hero-subtitle" data-i18n="hero.texto">
+        PROCOMER regula y promueve el Régimen de Zonas Francas, garantizando un marco de incentivos altamente competitivo, seguridad jurídica y el cumplimiento sostenible de cada proyecto.
+      </p>
+
+      <div class="hero-cta">
+        <button class="btn-hero-primary" onclick="abrirModalAcceso()">
+          <span>Iniciar Solicitud</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <a href="#proceso" class="btn-hero-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16"/></svg>
+          Ver Proceso
+        </a>
+      </div>
+
+      <div class="hero-trust">
+        <div class="trust-avatars">
+          <img src="https://images.unsplash.com/photo-1494790108755-2616b332c79e?w=80&h=80&fit=crop&crop=face" alt="Empresa 1">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" alt="Empresa 2">
+          <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face" alt="Empresa 3">
+          <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face" alt="Empresa 4">
+        </div>
+        <p class="trust-text"><strong>+400 multinacionales</strong> confían en nuestro régimen</p>
+      </div>
     </div>
 
-    <!-- Modal accesible (reemplaza prompt/confirm nativos) -->
-    <div id="modal-overlay" class="modal-overlay hidden">
-        <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
-            <h3 id="modal-titulo"></h3>
-            <p id="modal-mensaje" class="hidden"></p>
-            <div id="modal-contenido" class="hidden"></div>
-            <textarea id="modal-input" class="hidden" maxlength="250"
-                placeholder="Escriba sus observaciones..."></textarea>
-            <div id="modal-contador" class="char-counter hidden">0/250</div>
-            <div class="modal-acciones">
-                <button id="modal-btn-cancelar" class="btn-secondary" type="button">Cancelar</button>
-                <button id="modal-btn-aceptar" class="btn-primary" type="button">Aceptar</button>
-            </div>
+    <div class="hero-split-image">
+      <div class="hero-img-wrapper">
+        <img
+          src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=900&q=85&fit=crop"
+          alt="Edificio corporativo e industrial tecnológico en Costa Rica"
+          class="hero-img"
+          loading="eager"
+        >
+        <!-- Floating KPI 1 -->
+        <div class="hero-float-card hero-float-top">
+          <div class="float-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--teal-accent);"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+          </div>
+          <div class="float-info">
+            <strong>$3.2B USD</strong>
+            <span>Inversión extranjera directa</span>
+          </div>
         </div>
+        <!-- Floating KPI 2 -->
+        <div class="hero-float-card hero-float-bottom">
+          <div class="float-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--green-ok);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+          <div class="float-info">
+            <strong>98% Cumplimiento</strong>
+            <span>Verificación anual ambiental y legal</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Ticker -->
+  <section class="stats-band">
+    <div class="stats-band-inner">
+      <div class="stat-block">
+        <span class="stat-val">+400</span>
+        <span class="stat-desc">Empresas Instaladas</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-block">
+        <span class="stat-val">$3.2B</span>
+        <span class="stat-desc">Inversión Comprometida</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-block">
+        <span class="stat-val">85,000+</span>
+        <span class="stat-desc">Empleos de Alta Calidad</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-block">
+        <span class="stat-val">72 Horas</span>
+        <span class="stat-desc">Pre-evaluación con IA</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Requisitos Rápidos -->
+  <section class="req-section" id="requisitos">
+    <div class="req-inner">
+      <div class="req-text">
+        <span class="section-eyebrow">Elegibilidad Operativa</span>
+        <h2>¿Qué requiere su proyecto para ingresar?</h2>
+        <p>Garantizamos el acceso a un ecosistema empresarial sofisticado a cambio de compromisos tangibles que potencien el desarrollo social y económico de Costa Rica.</p>
+        <button class="btn-req" onclick="abrirModalAcceso()">Simular mi Elegibilidad →</button>
+      </div>
+      <div class="req-cards">
+        <div class="req-card">
+          <div class="req-card-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+          <h3>$150k USD</h3>
+          <p>Monto de inversión mínima en infraestructura y activos fijos para iniciar operaciones.</p>
+        </div>
+        <div class="req-card">
+          <div class="req-card-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <h3>10 Empleos</h3>
+          <p>Generación y mantenimiento de al menos 10 empleos directos permanentes en el país.</p>
+        </div>
+        <div class="req-card">
+          <div class="req-card-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M2 20h20"></path><path d="M5 17V7l7 5V7l7 5v5"></path></svg>
+          </div>
+          <h3>Sectores Foco</h3>
+          <p>El proyecto debe pertenecer a sectores clave de servicios de valor agregado o manufactura.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sectores de Especialización -->
+  <section class="sectores-section" id="sectores">
+    <div class="sectores-header">
+      <span class="section-eyebrow">Áreas Estratégicas</span>
+      <h2>Sectores impulsados por el Régimen</h2>
+      <p>Costa Rica lidera la atracción de inversión en campos altamente calificados, con talento bilingüe e integraciones de cadena global.</p>
     </div>
 
-    <!-- ENCABEZADO -->
-    <header class="navbar">
-        <div class="brand-container">
-            <div class="logo-badge">ZF</div>
-            <h1>ZoFranca CR</h1>
+    <div class="sectores-grid">
+      <div class="sector-card">
+        <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&q=80&fit=crop" alt="Tecnología e Inteligencia Artificial" loading="lazy">
+        <div class="sector-overlay">
+          <div class="sector-badge"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; margin-right: 4px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg> Tecnología</div>
+          <h3>Tecnología e Innovación</h3>
+          <p>Software sofisticado, data centers y ciberseguridad avanzada.</p>
+          <span class="sector-stat">142 empresas activas</span>
         </div>
-        <nav aria-label="Navegación principal">
-            <button class="nav-btn active" data-section="sec-solicitud">Solicitud</button>
-            <button class="nav-btn" data-section="sec-analista">Analista</button>
-            <button class="nav-btn" data-section="sec-reporte">Cumplimiento</button>
-            <button class="nav-btn" data-section="sec-auditoria">Auditoría</button>
-        </nav>
-    </header>
+      </div>
 
-    <main class="main-container">
+      <div class="sector-card">
+        <img src="https://images.unsplash.com/photo-1576086213369-97a306d36557?w=600&q=80&fit=crop" alt="Ciencias de la Vida y Dispositivos Médicos" loading="lazy">
+        <div class="sector-overlay">
+          <div class="sector-badge"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; margin-right: 4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Ciencias de la Vida</div>
+          <h3>Ciencias de la Vida</h3>
+          <p>Líderes en manufactura de dispositivos médicos y biotecnología.</p>
+          <span class="sector-stat">89 empresas activas</span>
+        </div>
+      </div>
 
-        <!-- KPIs GENERALES -->
-        <section class="kpi-strip" aria-label="Indicadores generales">
-            <div class="kpi-card"><span class="kpi-valor" id="kpi-total">-</span><span class="kpi-etiqueta">Solicitudes</span></div>
-            <div class="kpi-card"><span class="kpi-valor" id="kpi-pendientes">-</span><span class="kpi-etiqueta">Pendientes</span></div>
-            <div class="kpi-card"><span class="kpi-valor" id="kpi-aprobadas">-</span><span class="kpi-etiqueta">Aprobadas</span></div>
-            <div class="kpi-card"><span class="kpi-valor" id="kpi-ia-promedio">-</span><span class="kpi-etiqueta">Puntaje IA prom.</span></div>
-            <div class="kpi-card kpi-alerta"><span class="kpi-valor" id="kpi-alertas">-</span><span class="kpi-etiqueta">Alertas rojas</span></div>
-        </section>
+      <div class="sector-card">
+        <img src="https://images.unsplash.com/photo-1565043666747-69f6646db940?w=600&q=80&fit=crop" alt="Manufactura Avanzada" loading="lazy">
+        <div class="sector-overlay">
+          <div class="sector-badge"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; margin-right: 4px;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Manufactura</div>
+          <h3>Manufactura Avanzada</h3>
+          <p>Componentes aeroespaciales, automotrices y electrónica de precisión.</p>
+          <span class="sector-stat">75 empresas activas</span>
+        </div>
+      </div>
 
-        <!-- HU-01: SOLICITUD DE INSTALACIÓN (RF-01) -->
-        <section id="sec-solicitud" class="modulo-seccion">
-            <div class="section-header">
-                <h2>HU-01 · Registro y Envío de Solicitud</h2>
-                <p>La IA pre-clasificará su solicitud automáticamente (máx. 5 segundos).</p>
+      <div class="sector-card">
+        <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&q=80&fit=crop" alt="Logística y Distribución Regional" loading="lazy">
+        <div class="sector-overlay">
+          <div class="sector-badge"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; margin-right: 4px;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg> Logística</div>
+          <h3>Logística Internacional</h3>
+          <p>Hubs de distribución estratégica, cadena de frío y transporte multimodal.</p>
+          <span class="sector-stat">55 empresas activas</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Plataforma Digital (Bento Grid) -->
+  <section class="features-section" id="servicios">
+    <div class="features-header">
+      <span class="section-eyebrow">Plataforma Digital</span>
+      <h2>Todo lo que necesita, en un solo portal</h2>
+      <p>Diseñado para simplificar cada etapa del proceso de adhesión al régimen.</p>
+    </div>
+
+    <div class="features-bento">
+      <!-- Card grande izquierda -->
+      <div class="bento-card bento-large">
+        <div class="bento-img-wrap">
+          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=700&q=80&fit=crop" alt="Dashboard de análisis" loading="lazy">
+        </div>
+        <div class="bento-content">
+          <div class="bento-icon">
+            <svg class="svg-icon" style="width: 32px; height: 32px; color: var(--teal-accent);" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          </div>
+          <h3>Evaluación Automática con IA</h3>
+          <p>Nuestro motor de inteligencia artificial analiza cada solicitud en menos de 72 horas, asignando un puntaje de afinidad con base en inversión, empleo y sector estratégico.</p>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg class="svg-icon" style="color: var(--teal-accent);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        </div>
+        <h3>Atracción de Inversión</h3>
+        <p>Promovemos Costa Rica como destino estratégico con incentivos fiscales de clase mundial.</p>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg class="svg-icon" style="color: var(--teal-accent);" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        </div>
+        <h3>Notificaciones en Tiempo Real</h3>
+        <p>Alertas instantáneas en cada etapa: recepción, evaluación, resolución y seguimiento.</p>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg class="svg-icon" style="color: var(--teal-accent);" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        </div>
+        <h3>Panel de Analistas</h3>
+        <p>Dashboard centralizado con KPIs, auditoría de decisiones y mensajería directa.</p>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg class="svg-icon" style="color: var(--teal-accent);" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        </div>
+        <h3>Validación Legal</h3>
+        <p>Certificación de terrenos y cumplimiento regulatorio verificado por expertos PROCOMER.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Proceso de Postulación -->
+  <section class="proceso-section" id="proceso">
+    <div class="proceso-inner">
+      <div class="proceso-header">
+        <span class="section-eyebrow">Flujo Digital</span>
+        <h2>Proceso de solicitud simplificado</h2>
+        <p>Rediseñamos la experiencia de postulación mediante etapas claras, objetivas y digitalizadas de inicio a fin.</p>
+      </div>
+
+      <div class="proceso-timeline">
+        <div class="ptl-item">
+          <div class="ptl-visual">
+            <div class="ptl-num">01</div>
+            <div class="ptl-line"></div>
+          </div>
+          <div class="ptl-card">
+            <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=80&fit=crop" alt="Registro y Carga de Archivos" loading="lazy" class="ptl-img">
+            <div class="ptl-body">
+              <h3>Registro de Empresa</h3>
+              <p>Autentíquese en el portal de empresas y complete los datos generales de su organización. Adjunte su plan de operaciones detallado en formato PDF o ZIP.</p>
+              <ul class="ptl-checklist">
+                <li>Formulario de solicitud interactivo</li>
+                <li>Validaciones automáticas de archivos</li>
+                <li>Número de radicado único instantáneo</li>
+              </ul>
             </div>
+          </div>
+        </div>
 
-            <form id="form-solicitud" class="card-form" novalidate autocomplete="off">
-                <div class="form-group">
-                    <label for="empresaNombre">Nombre de la Empresa</label>
-                    <input type="text" id="empresaNombre" maxlength="80" required
-                        placeholder="Ej. TechCorp Costa Rica (máx. 80 caracteres)">
-                </div>
-
-                <div class="form-group">
-                    <label for="sectorEmpresa">Sector de Actividad</label>
-                    <select id="sectorEmpresa" required>
-                        <option value="">Seleccione un sector</option>
-                        <option value="Ciencias de la Vida">Ciencias de la Vida</option>
-                        <option value="Manufactura Avanzada">Manufactura Avanzada</option>
-                        <option value="Servicios">Servicios (BPO)</option>
-                        <option value="Logística">Logística</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="inversionProyectada">Inversión Proyectada ($ USD)</label>
-                    <input type="number" id="inversionProyectada" min="1" max="1000000000" required placeholder="ej. 150000">
-                </div>
-
-                <div class="form-group">
-                    <label for="empleosProyectados">Empleos Proyectados</label>
-                    <input type="number" id="empleosProyectados" min="1" max="99999" required placeholder="ej. 45">
-                </div>
-
-                <div class="form-group full-width">
-                    <label for="documentosAdjuntos">Documentación de Respaldo (.PDF estricto, máx 10MB)</label>
-                    <input type="file" id="documentosAdjuntos" accept=".pdf,application/pdf" required>
-                    <small id="error-file" class="style-error">
-                        El archivo excede 10MB o tiene un formato no válido.
-                    </small>
-                </div>
-
-                <div class="form-group full-width btn-container">
-                    <button type="submit" class="btn-primary">Enviar a Evaluación</button>
-                </div>
-            </form>
-
-            <!-- RF-04/05: resultado visible de la pre-clasificación IA -->
-            <div id="resultado-ia" class="ia-resultado hidden">
-                <h3>Resultado de la Pre-clasificación IA</h3>
-                <div class="ia-grid">
-                    <p><strong>Solicitud:</strong> <span id="ia-id">-</span></p>
-                    <p><strong>Puntaje:</strong> <span id="ia-puntaje">-</span></p>
-                    <p><strong>Nivel:</strong> <span id="ia-nivel">-</span></p>
-                    <p><strong>Motor:</strong> <span id="ia-motor">-</span></p>
-                </div>
-                <p><strong>Justificación:</strong> <span id="ia-justificacion">-</span></p>
-                <p class="text-muted"><strong>Fecha:</strong> <span id="ia-fecha">-</span></p>
+        <div class="ptl-item">
+          <div class="ptl-visual">
+            <div class="ptl-num">02</div>
+            <div class="ptl-line"></div>
+          </div>
+          <div class="ptl-card">
+            <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&q=80&fit=crop" alt="Pre-evaluación IA" loading="lazy" class="ptl-img">
+            <div class="ptl-body">
+              <h3>Pre-evaluación por IA</h3>
+              <p>El motor inteligente pre-analiza los compromisos económicos, de talento humano y ambientales de la solicitud para asignar una puntuación de afinidad.</p>
+              <ul class="ptl-checklist">
+                <li>Resultados iniciales en 72 horas</li>
+                <li>Justificación transparente generada</li>
+                <li>Optimización en tiempo de procesamiento manual</li>
+              </ul>
             </div>
-        </section>
+          </div>
+        </div>
 
-        <!-- HU-02/HU-03: PANEL ANALISTA (RF-04/05/09) -->
-        <section id="sec-analista" class="modulo-seccion hidden">
-            <div class="section-header">
-                <h2>HU-02 / HU-03 · Pre-clasificación IA y Dictamen Final</h2>
-                <p>Evaluación Human-in-the-Loop de solicitudes recibidas.</p>
+        <div class="ptl-item">
+          <div class="ptl-visual">
+            <div class="ptl-num">03</div>
+            <div class="ptl-line"></div>
+          </div>
+          <div class="ptl-card">
+            <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&q=80&fit=crop" alt="Validación por analista PROCOMER" loading="lazy" class="ptl-img">
+            <div class="ptl-body">
+              <h3>Revisión de Analistas</h3>
+              <p>Un analista asignado verifica la viabilidad legal, financiera y técnica del expediente, manteniéndose en contacto directo con usted ante cualquier duda.</p>
+              <ul class="ptl-checklist">
+                <li>Trazabilidad total en bitácora inmutable</li>
+                <li>Mensajería interna y aclaraciones</li>
+                <li>Objetividad en la toma de decisiones</li>
+              </ul>
             </div>
+          </div>
+        </div>
 
-            <div class="filtros-barra">
-                <input type="text" id="filtro-busqueda" maxlength="60" placeholder="Buscar por empresa o ID...">
-                <select id="filtro-estado">
-                    <option value="TODOS">Todos los estados</option>
-                    <option value="PENDIENTE_EVALUACION">Pendientes</option>
-                    <option value="APROBADA">Aprobadas</option>
-                    <option value="RECHAZADA">Rechazadas</option>
-                </select>
-                <button id="btn-exportar-solicitudes" class="btn-fantasma" type="button">Exportar CSV</button>
+        <div class="ptl-item">
+          <div class="ptl-visual">
+            <div class="ptl-num">04</div>
+          </div>
+          <div class="ptl-card">
+            <img src="https://images.unsplash.com/photo-1450133064473-71024230f91b?w=400&q=80&fit=crop" alt="Aprobación y firma digital" loading="lazy" class="ptl-img">
+            <div class="ptl-body">
+              <h3>Resolución y Firma</h3>
+              <p>Una vez aprobado el trámite, se emite la resolución que formaliza el ingreso de la empresa al Régimen de Zona Franca y se habilita el monitor de cumplimiento.</p>
+              <ul class="ptl-checklist">
+                <li>Notificaciones seguras por correo</li>
+                <li>Bitácora de cumplimiento de metas</li>
+                <li>Acceso a beneficios inmediatos</li>
+              </ul>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-            <div class="table-container">
-                <table id="tabla-solicitudes">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Empresa</th>
-                            <th>Inversión</th>
-                            <th>Empleos</th>
-                            <th>Sugerencia IA</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="container-solicitudes-pendientes"></tbody>
-                </table>
-                <div class="paginacion">
-                    <span id="paginacion-info">-</span>
-                    <button id="btn-prev" class="btn-fantasma" type="button">&larr; Anterior</button>
-                    <button id="btn-next" class="btn-fantasma" type="button">Siguiente &rarr;</button>
-                </div>
+  <!-- Testimonios de Éxito -->
+  <section class="testimonios-section" id="testimonios">
+    <div class="testimonios-inner">
+      <span class="section-eyebrow light">Multinacionales en Costa Rica</span>
+      <h2>Historias de Crecimiento</h2>
+
+      <div class="testimonios-grid">
+        <div class="testi-card">
+          <div class="testi-quote">“</div>
+          <p>“El proceso digital a través del portal de PROCOMER nos permitió obtener la resolución en tiempo récord. Pudimos acelerar la contratación de 50 profesionales en IA en los primeros dos meses.”</p>
+          <div class="testi-author">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face" alt="Marta Chaves" loading="lazy">
+            <div>
+              <strong>Marta Chaves</strong>
+              <span>Directora de Operaciones · Innovex CR</span>
+              <div class="testi-stars">★★★★★</div>
             </div>
-        </section>
+          </div>
+        </div>
 
-        <!-- HU-04: CUMPLIMIENTO CONTRACTUAL -->
-        <section id="sec-reporte" class="modulo-seccion hidden">
-            <div class="section-header">
-                <h2>HU-04 · Reporte Periódico de Cumplimiento</h2>
-                <p>Ejecución de metas de inversión y empleo de empresas instaladas.</p>
+        <div class="testi-card testi-featured">
+          <div class="testi-quote">“</div>
+          <p>“La infraestructura regulatoria y la estabilidad de las Zonas Francas en Costa Rica han sido la base para expandir nuestra planta de dispositivos médicos tres veces consecutivas.”</p>
+          <div class="testi-author">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" alt="David Miller" loading="lazy">
+            <div>
+              <strong>David Miller</strong>
+              <span>CEO Global · Lifeline BioMed</span>
+              <div class="testi-stars">★★★★★</div>
             </div>
-            <form id="form-cumplimiento" class="card-form" autocomplete="off">
-                <div class="form-group full-width">
-                    <label for="empresaIdCumplimiento">ID de Empresa Instalada</label>
-                    <input type="text" id="empresaIdCumplimiento" maxlength="20" required placeholder="ej. EMP-001">
-                </div>
-                <div class="form-group">
-                    <label for="inversionEjecutada">Inversión Ejecutada ($ USD)</label>
-                    <input type="number" id="inversionEjecutada" min="0" max="1000000000" required>
-                </div>
-                <div class="form-group">
-                    <label for="empleosReales">Empleos Reales Generados</label>
-                    <input type="number" id="empleosReales" min="0" max="99999" required>
-                </div>
-                <div class="form-group full-width btn-container">
-                    <button type="submit" class="btn-primary">Enviar Reporte</button>
-                </div>
-            </form>
-        </section>
+          </div>
+        </div>
 
-        <!-- HU-05: AUDITORÍA Y ALERTAS (RF-14) -->
-        <section id="sec-auditoria" class="modulo-seccion hidden">
-            <div class="section-header">
-                <h2>HU-05 · Monitor de Alertas de Incumplimiento</h2>
-                <p>Auditoría sobre contratos activos de zona franca.</p>
+        <div class="testi-card">
+          <div class="testi-quote">“</div>
+          <p>“El sistema integrado de monitoreo de metas nos ayuda a mantener nuestra operación alineada a los compromisos del régimen, simplificando los reportes anuales a un solo clic.”</p>
+          <div class="testi-author">
+            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face" alt="Felipe Solís" loading="lazy">
+            <div>
+              <strong>Felipe Solís</strong>
+              <span>Gerente de Finanzas · Intelilog CR</span>
+              <div class="testi-stars">★★★★★</div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-            <div class="filtros-barra">
-                <select id="filtro-alerta">
-                    <option value="TODOS">Todas las alertas</option>
-                    <option value="CUMPLE">Cumple (verde)</option>
-                    <option value="ALERTA_AMARILLA">Alerta amarilla</option>
-                    <option value="ALERTA_ROJA">Alerta roja</option>
-                </select>
-                <button id="btn-exportar-reportes" class="btn-fantasma" type="button">Exportar CSV</button>
-            </div>
+  <!-- CTA Section -->
+  <section class="cta-section" id="contacto">
+    <div class="cta-bg-image">
+      <img src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1400&q=70&fit=crop" alt="Ecosistema corporativo e industrial de Costa Rica" loading="lazy">
+    </div>
+    <div class="cta-content">
+      <span class="section-eyebrow light">¿Listo para expandir su empresa?</span>
+      <h2>Inicie su solicitud de adhesión digital hoy</h2>
+      <p>Únase al Régimen de Zona Franca y acceda a un ecosistema líder en exportación de servicios y manufactura avanzada en Costa Rica.</p>
+      <div class="cta-actions">
+        <button class="btn-cta-primary" onclick="abrirModalAcceso()">
+          Establecer mi Empresa →
+        </button>
+        <a href="mailto:zonafranca@procomer.com" class="btn-cta-secondary">
+          ✉️ Hablar con un Asesor
+        </a>
+      </div>
+    </div>
+  </section>
 
-            <div class="table-container">
-                <table id="tabla-cumplimiento">
-                    <thead>
-                        <tr>
-                            <th>ID Reporte</th>
-                            <th>Empresa</th>
-                            <th>Compromiso vs Real</th>
-                            <th>% Cumplimiento</th>
-                            <th>Alerta</th>
-                        </tr>
-                    </thead>
-                    <tbody id="container-alertas-cumplimiento"></tbody>
-                </table>
-            </div>
+  <!-- Footer -->
+  <footer class="site-footer-full">
+    <div class="footer-main">
+      <div class="footer-col footer-brand-col">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e2/Logo_PROCOMER.png" alt="PROCOMER" class="footer-logo-img">
+        <p class="footer-tagline">Promotora del Comercio Exterior de Costa Rica. Facilitando la inversión internacional sostenible desde 1996.</p>
+        <div class="footer-social">
+          <a href="#" class="social-btn" aria-label="LinkedIn">in</a>
+          <a href="#" class="social-btn" aria-label="X">𝕏</a>
+          <a href="#" class="social-btn" aria-label="Facebook">f</a>
+        </div>
+      </div>
 
-            <div class="section-header" style="margin-top: 2rem;">
-                <h2>Bitácora de Auditoría (RF-14)</h2>
-                <p>Trazabilidad completa de dictámenes y cambios de estado.</p>
-            </div>
-            <div class="table-container">
-                <table id="tabla-bitacora">
-                    <thead>
-                        <tr>
-                            <th>Fecha / Hora</th>
-                            <th>Usuario</th>
-                            <th>Solicitud</th>
-                            <th>Acción</th>
-                            <th>Observaciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="container-bitacora"></tbody>
-                </table>
-            </div>
-        </section>
+      <div class="footer-col">
+        <h4>Plataforma</h4>
+        <ul>
+          <li><a href="#requisitos">Requisitos Operativos</a></li>
+          <li><a href="#sectores">Sectores Clave</a></li>
+          <li><a href="#proceso">Proceso de Adhesión</a></li>
+          <li><a href="#" onclick="abrirModalAcceso()">Portal de Empresas</a></li>
+        </ul>
+      </div>
 
-    </main>
+      <div class="footer-col">
+        <h4>Legal e Info</h4>
+        <ul>
+          <li><a href="#">Ley N° 7210 de Zona Franca</a></li>
+          <li><a href="#">Reglamentos de Operación</a></li>
+          <li><a href="#">Guías de Inversión</a></li>
+          <li><a href="#">Preguntas Frecuentes</a></li>
+        </ul>
+      </div>
 
-    <script type="module" src="/src/js/app.js"></script>
+      <div class="footer-col">
+        <h4>Contacto</h4>
+        <ul class="footer-contact-list">
+          <li>📍 Plaza Tempo, Escazú, San José, CR</li>
+          <li>📞 +506 2299-2700</li>
+          <li>✉️ zonafranca@procomer.com</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2026 PROCOMER · Todos los derechos reservados · Costa Rica</p>
+      <div class="footer-bottom-links">
+        <a href="#">Aviso Legal</a>
+        <a href="#">Políticas de Privacidad</a>
+        <a href="#">Transparencia</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal Animado de Acceso -->
+  <div id="modalAcceso" class="modal-overlay-landing" onclick="if(event.target===this)cerrarModalAcceso()">
+    <div class="modal-card-landing">
+      <button class="modal-close" onclick="cerrarModalAcceso()" aria-label="Cerrar">✕</button>
+
+      <!-- Paso 1: Selección de Portal -->
+      <div id="pasoSeleccion">
+        <h3>¿Cómo desea ingresar?</h3>
+        <p class="text-muted" style="font-size:.88rem;color:var(--text-muted);margin-bottom:.5rem;">Seleccione el portal correspondiente a su perfil:</p>
+
+        <button class="portal-opcion" id="btn-portal-empresa" onclick="mostrarPortal('empresa')">
+          <span class="icono">🏢</span>
+          <span>
+            <strong data-i18n="modal.portalEmpresa">Portal de Empresas</strong>
+            <small data-i18n="modal.empresaDesc">Inicio de sesión / registro para empresas solicitantes.</small>
+          </span>
+        </button>
+
+        <button class="portal-opcion" id="btn-portal-admin" onclick="mostrarPortal('admin')">
+          <span class="icono">🔐</span>
+          <span>
+            <strong data-i18n="modal.portalAdmin">Portal Administrativo</strong>
+            <small data-i18n="modal.adminDesc">Acceso exclusivo para analistas y administradores.</small>
+          </span>
+        </button>
+      </div>
+
+      <!-- Paso 2A: Portal de Empresas -->
+      <div id="pasoEmpresa" hidden>
+        <h3>🏢 Portal de Empresas</h3>
+        <div class="tabs-mini">
+          <button type="button" class="tab-mini activo" id="tab-login" onclick="cambiarTabEmpresa('login', this)">Iniciar Sesión</button>
+          <button type="button" class="tab-mini" id="tab-registro" onclick="cambiarTabEmpresa('registro', this)">Registrarse</button>
+        </div>
+
+        <form id="formLoginEmpresa" onsubmit="loginEmpresa(event)" hidden>
+          <input type="text" id="loginRadicado" class="modal-input" placeholder="Radicado (ej. EMP-001) o Cédula Jurídica" required autofocus>
+          <input type="password" id="loginPassword" class="modal-input" placeholder="Contraseña" required>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" onclick="volverSeleccion()">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Ingresar →</button>
+          </div>
+        </form>
+
+        <form id="formRegistroEmpresa" onsubmit="registroEmpresa(event)" hidden>
+          <input type="text" id="regNombre" class="modal-input" placeholder="Nombre de la Empresa" required>
+          <input type="email" id="regCorreo" class="modal-input" placeholder="Correo corporativo" required>
+          <input type="password" id="regPassword" class="modal-input" placeholder="Contraseña (mín. 6 caracteres)" minlength="6" required>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" onclick="volverSeleccion()">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Crear cuenta →</button>
+          </div>
+        </form>
+        <p id="errorEmpresa" class="modal-error">Credenciales inválidas. Verifique su radicado.</p>
+      </div>
+
+      <!-- Paso 2B: Portal Administrativo -->
+      <div id="pasoAdmin" hidden>
+        <h3>🔐 Portal Administrativo</h3>
+        <p style="font-size:.85rem;color:var(--text-muted);margin:.5rem 0 1rem;">Acceso restringido para personal PROCOMER.</p>
+        <form id="formAdmin" onsubmit="loginAdministrativo(event)">
+          <input type="email" id="adminCorreo" class="modal-input" placeholder="Correo institucional (@zofranca.cr)" required autofocus>
+          <input type="password" id="adminPassword" class="modal-input" placeholder="Contraseña" required>
+          <p id="errorAdmin" class="modal-error">Credenciales incorrectas.</p>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" onclick="volverSeleccion()">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Ingresar →</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="/src/js/init-global.js"></script>
+  <script type="module" src="/src/js/landing.js"></script>
+  <script type="module" src="/src/js/init-scroll.js"></script>
 </body>
 </html>

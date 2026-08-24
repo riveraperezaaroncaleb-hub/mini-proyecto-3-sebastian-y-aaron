@@ -242,3 +242,58 @@ body {
     display: block;
   }
 }
+
+/* ============================================================
+   MODO OSCURO — admins.css
+   ============================================================ */
+html[data-theme="dark"] body {
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+}
+
+html[data-theme="dark"] .sidebar {
+  background-color: var(--sidebar-bg);
+}
+
+html[data-theme="dark"] .topbar {
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-dark);
+}
+
+html[data-theme="dark"] .main-wrapper {
+  background-color: var(--bg-light);
+}
+
+html[data-theme="dark"] .content-area {
+  background-color: var(--bg-light);
+}
+
+html[data-theme="dark"] .page-header h1 {
+  color: var(--teal-accent);
+}
+
+html[data-theme="dark"] .page-header .subtitle {
+  color: var(--text-muted);
+}
+
+html[data-theme="dark"] .user-role {
+  color: var(--text-dark);
+}
+
+html[data-theme="dark"] .placeholder-card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+html[data-theme="dark"] .placeholder-card h3 {
+  color: var(--teal-accent);
+}
+
+html[data-theme="dark"] .placeholder-card p {
+  color: var(--text-muted);
+}
+
+html[data-theme="dark"] .toggle-btn {
+  color: var(--teal-accent);
+}
